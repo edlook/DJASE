@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DJASE — AI Платформа</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --sidebar-bg: #ffffff;
+  --accent: #2563eb;
+  --accent-light: #eff6ff;
+  --accent2: #06b6d4;
+  --text: #111827;
+  --text2: #6b7280;
+  --text3: #9ca3af;
+  --border: #e5e7eb;
+  --border2: #f3f4f6;
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -1px rgba(0,0,0,.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.08), 0 4px 6px -2px rgba(0,0,0,.04);
+  --r: 12px;
+  --r2: 8px;
+  --sidebar-w: 210px;
+}
+
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  height: 100%;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+
+/* ══════════════════════════════════
+   LAYOUT
+══════════════════════════════════ */
+.layout { display: flex; height: 100vh; overflow: hidden; }
+
+/* ══════════════════════════════════
+   SIDEBAR
+══════════════════════════════════ */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  transition: width .25s ease;
+  overflow: hidden;
+  position: relative;
+  z-index: 10;
+}
+.sidebar.collapsed { width: 56px; }
+
+.sidebar-logo {
+  height: 56px;
+  display: flex; align-items: center;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 10px;
+  position: relative;
+}
+.logo-icon {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.logo-icon svg { width: 18px; height: 18px; }
+.logo-text {
+  font-weight: 700; font-size: 16px;
+  letter-spacing: -.3px;
+  white-space: nowrap;
+  transition: opacity .2s;
+}
+.sidebar.collapsed .logo-text { opacity: 0; pointer-events: none; }
+
+.sidebar-toggle {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  width: 22px; height: 22px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 10px;
+  color: var(--text2);
+  transition: all .15s;
+}
+.sidebar-toggle:hover { background: var(--border); }
+.sidebar.collapsed .sidebar-toggle { right: auto; left: 50%; transform: translate(-50%,-50%); }
+
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 10px 8px; }
+.sidebar-nav::-webkit-scrollbar { width: 0; }
+
+.nav-section-title {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text3);
+  padding: 10px 8px 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: opacity .2s;
+}
+.sidebar.collapsed .nav-section-title { opacity: 0; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text2);
+  font-size: 13.5px; font-weight: 500;
+  transition: all .15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-decoration: none;
+  position: relative;
+}
+.nav-item:hover { background: var(--bg); color: var(--text); }
+.nav-item.active { background: var(--accent-light); color: var(--accent); }
+.nav-item-icon {
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 16px;
+}
+.nav-item-label { transition: opacity .2s; white-space: nowrap; }
+.sidebar.collapsed .nav-item-label { opacity: 0; pointer-events: none; }
+
+.sidebar-foot {
+  padding: 12px 8px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.token-block {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 10px 12px;
+  overflow: hidden;
+  transition: opacity .2s;
+}
+.sidebar.collapsed .token-block { opacity: 0; }
+.token-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.token-row:last-child { margin-bottom: 0; }
+.token-label { font-size: 12px; color: var(--text2); }
+.token-val { font-size: 12px; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--text); }
+
+/* ══════════════════════════════════
+   MAIN
+══════════════════════════════════ */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ══════════════════════════════════
+   PAGE HEADER
+══════════════════════════════════ */
+.page-head {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 28px 0;
+  flex-shrink: 0;
+}
+.page-head-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.page-head h1 {
+  font-size: 22px; font-weight: 700;
+  letter-spacing: -.4px;
+}
+.head-actions { display: flex; gap: 8px; align-items: center; }
+
+.search-box {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 12px;
+  min-width: 200px;
+}
+.search-box input {
+  background: none; border: none; outline: none;
+  font-family: inherit; font-size: 13px;
+  color: var(--text); width: 100%;
+}
+.search-box input::placeholder { color: var(--text3); }
+.search-icon { color: var(--text3); font-size: 14px; flex-shrink: 0; }
+
+/* Filter tabs */
+.filter-tabs {
+  display: flex; gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 0;
+}
+.filter-tabs::-webkit-scrollbar { height: 0; }
+.filter-tab {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px 8px 0 0;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer;
+  color: var(--text2);
+  border-bottom: 2px solid transparent;
+  transition: all .15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.filter-tab:hover { color: var(--text); background: var(--bg); }
+.filter-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--accent-light); }
+.filter-tab-icon { font-size: 14px; }
+
+/* ══════════════════════════════════
+   CONTENT AREA
+══════════════════════════════════ */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+}
+.content::-webkit-scrollbar { width: 5px; }
+
+/* page switching */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ══════════════════════════════════
+   TOOL CARDS GRID (Images/Video/Audio)
+══════════════════════════════════ */
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.tool-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all .2s;
+  box-shadow: var(--shadow);
+}
+.tool-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: #d1d5db;
+}
+
+.tool-card-thumb {
+  width: 100%; aspect-ratio: 16/10;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.tool-card-thumb img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.tool-card-thumb-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+}
+
+/* gradient overlays matching the screenshots */
+.thumb-gradient-1 { background: linear-gradient(135deg, #1e3a5f 0%, #0ea5e9 100%); }
+.thumb-gradient-2 { background: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%); }
+.thumb-gradient-3 { background: linear-gradient(135deg, #0f766e 0%, #34d399 100%); }
+.thumb-gradient-4 { background: linear-gradient(135deg, #7c3aed 0%, #c4b5fd 100%); }
+.thumb-gradient-5 { background: linear-gradient(135deg, #be185d 0%, #f9a8d4 100%); }
+.thumb-gradient-6 { background: linear-gradient(135deg, #92400e 0%, #fbbf24 100%); }
+.thumb-gradient-7 { background: linear-gradient(135deg, #1d4ed8 0%, #60a5fa 100%); }
+.thumb-gradient-8 { background: linear-gradient(135deg, #065f46 0%, #6ee7b7 100%); }
+.thumb-gradient-9 { background: linear-gradient(135deg, #831843 0%, #fb7185 100%); }
+.thumb-gradient-10 { background: linear-gradient(135deg, #1e40af 0%, #93c5fd 100%); }
+.thumb-gradient-11 { background: linear-gradient(135deg, #374151 0%, #9ca3af 100%); }
+.thumb-gradient-12 { background: linear-gradient(135deg, #7f1d1d 0%, #fca5a5 100%); }
+
+.thumb-badge {
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(255,255,255,.15);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-size: 10px; font-weight: 600;
+  color: white;
+  letter-spacing: .03em;
+}
+.thumb-badge.new-badge { background: rgba(34,197,94,.85); border-color: rgba(34,197,94,.5); }
+
+.tool-card-body { padding: 12px 14px 14px; }
+.tool-card-name {
+  font-size: 13.5px; font-weight: 600;
+  margin-bottom: 4px; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tool-card-desc {
+  font-size: 12px; color: var(--text2);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ══════════════════════════════════
+   TOOLS PAGE (Инструменты list)
+══════════════════════════════════ */
+.tools-section { margin-bottom: 28px; }
+.tools-section-title {
+  font-size: 15px; font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: -.2px;
+  display: flex; align-items: center; gap: 8px;
+}
+.tools-section-title::after {
+  content: '';
+  flex: 1; height: 1px;
+  background: var(--border);
+  margin-left: 4px;
+}
+.tools-list-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+}
+.tool-list-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 13px;
+  transition: all .15s;
+}
+.tool-list-item:hover { background: var(--accent-light); color: var(--accent); }
+.tool-list-icon { width: 20px; height: 20px; flex-shrink: 0; font-size: 15px; display: flex; align-items: center; }
+
+/* ══════════════════════════════════
+   CHAT PAGE
+══════════════════════════════════ */
+.chat-layout {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+.chat-messages-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 0;
+}
+.chat-welcome {
+  max-width: 580px; margin: 0 auto;
+  text-align: center;
+  padding: 48px 28px 28px;
+}
+.chat-welcome-icon {
+  width: 60px; height: 60px; margin: 0 auto 18px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+}
+.chat-welcome h2 { font-size: 22px; font-weight: 700; letter-spacing: -.4px; margin-bottom: 8px; }
+.chat-welcome p { font-size: 14px; color: var(--text2); line-height: 1.6; }
+
+.chat-suggestions {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; max-width: 580px; margin: 20px auto;
+  padding: 0 28px;
+}
+.chat-sugg {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 13px 15px;
+  cursor: pointer; transition: all .18s; text-align: left;
+  box-shadow: var(--shadow);
+}
+.chat-sugg:hover { border-color: #bfdbfe; background: var(--accent-light); }
+.chat-sugg-icon { font-size: 18px; margin-bottom: 7px; }
+.chat-sugg-txt { font-size: 12.5px; color: var(--text2); line-height: 1.5; }
+
+.msg-wrap { max-width: 760px; margin: 0 auto; padding: 4px 28px; }
+.message { display: flex; gap: 12px; margin-bottom: 2px; }
+.message.user { flex-direction: row-reverse; }
+.msg-av {
+  width: 28px; height: 28px; border-radius: 7px;
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; margin-top: 3px;
+}
+.msg-av.ai { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; font-size: 14px; }
+.msg-av.usr { background: linear-gradient(135deg, #7c3aed, #a855f7); color: white; }
+.msg-body { max-width: 72%; }
+.msg-bubble {
+  padding: 10px 14px; border-radius: 12px;
+  font-size: 14px; line-height: 1.7;
+}
+.message.ai .msg-bubble {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px 12px 12px 12px; box-shadow: var(--shadow);
+}
+.message.user .msg-bubble {
+  background: var(--accent); color: white;
+  border-radius: 12px 4px 12px 12px;
+}
+.msg-time { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; margin-top: 4px; padding: 0 2px; }
+
+.typing { display: flex; gap: 4px; align-items: center; padding: 12px 14px; }
+.typing-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text3);
+  animation: td 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: .2s; }
+.typing-dot:nth-child(3) { animation-delay: .4s; }
+@keyframes td {
+  0%,60%,100% { transform: translateY(0); opacity: .4; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}
+
+.chat-input-wrap {
+  padding: 12px 28px 20px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  max-width: 760px; width: 100%; margin: 0 auto;
+  flex-shrink: 0;
+}
+.chat-input-box {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 11px 14px 9px;
+  transition: border-color .18s, box-shadow .18s;
+}
+.chat-input-box:focus-within { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
+.chat-textarea {
+  width: 100%; background: none; border: none; outline: none;
+  font-family: inherit; font-size: 14px; color: var(--text);
+  line-height: 1.6; resize: none;
+  min-height: 24px; max-height: 160px; overflow-y: auto;
+}
+.chat-textarea::placeholder { color: var(--text3); }
+.chat-input-footer {
+  display: flex; align-items: center; gap: 6px;
+  padding-top: 8px; border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+.send-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--accent); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 14px;
+  transition: all .15s; flex-shrink: 0;
+}
+.send-btn:hover { background: #1d4ed8; }
+.send-btn:disabled { opacity: .35; pointer-events: none; }
+.attach-btn {
+  width: 28px; height: 28px; border-radius: 6px;
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+.attach-btn:hover { background: var(--border); color: var(--text2); }
+
+/* ══════════════════════════════════
+   MODEL SELECT PILL (topbar)
+══════════════════════════════════ */
+.model-select-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 12px;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .15s;
+}
+.model-select-pill:hover { background: var(--border); }
+.model-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34,197,94,.2);
+  animation: blink 2.5s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ══════════════════════════════════
+   HISTORY PAGE
+══════════════════════════════════ */
+.history-list { display: flex; flex-direction: column; gap: 8px; }
+.history-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 18px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer; transition: all .15s; box-shadow: var(--shadow);
+}
+.history-card:hover { border-color: #bfdbfe; box-shadow: var(--shadow-md); }
+.history-card-icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.history-card-title { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
+.history-card-meta { font-size: 12px; color: var(--text2); }
+.history-card-type {
+  margin-left: auto; flex-shrink: 0;
+  font-size: 11px; font-weight: 500;
+  padding: 3px 9px; border-radius: 20px;
+}
+
+/* ══════════════════════════════════
+   SETTINGS PAGE
+══════════════════════════════════ */
+.settings-grid { display: grid; grid-template-columns: 220px 1fr; gap: 20px; }
+.settings-nav { display: flex; flex-direction: column; gap: 2px; }
+.settings-nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 12px; border-radius: 8px;
+  cursor: pointer; font-size: 13.5px; font-weight: 500;
+  color: var(--text2); transition: all .15s;
+}
+.settings-nav-item:hover { background: var(--bg); color: var(--text); }
+.settings-nav-item.active { background: var(--accent-light); color: var(--accent); }
+
+.settings-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r); overflow: hidden; margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.settings-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px; font-weight: 700;
+  letter-spacing: -.2px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.settings-card-body { padding: 20px; }
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 0; border-bottom: 1px solid var(--border2);
+}
+.settings-row:last-child { border-bottom: none; padding-bottom: 0; }
+.settings-row:first-child { padding-top: 0; }
+.settings-row-lbl { font-size: 13.5px; font-weight: 500; margin-bottom: 2px; }
+.settings-row-hint { font-size: 12px; color: var(--text3); }
+
+.toggle {
+  width: 40px; height: 22px; border-radius: 11px;
+  background: #d1d5db;
+  cursor: pointer; position: relative; transition: background .2s; flex-shrink: 0;
+}
+.toggle.on { background: var(--accent); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: white;
+  top: 3px; left: 3px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  transition: left .2s;
+}
+.toggle.on::after { left: 21px; }
+
+/* ══════════════════════════════════
+   FORM ELEMENTS
+══════════════════════════════════ */
+.input {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 9px 12px;
+  font-family: inherit; font-size: 13.5px;
+  color: var(--text); outline: none; width: 100%;
+  transition: border-color .15s, box-shadow .15s;
+}
+.input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
+.input::placeholder { color: var(--text3); }
+
+.select-field {
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 8px 12px;
+  font-family: inherit; font-size: 13px; color: var(--text);
+  outline: none; appearance: none; cursor: pointer;
+  transition: border-color .15s;
+}
+.select-field:focus { border-color: var(--accent); }
+
+.label { display: block; font-size: 12.5px; font-weight: 500; color: var(--text2); margin-bottom: 5px; }
+.form-group { margin-bottom: 14px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* ══════════════════════════════════
+   BUTTONS
+══════════════════════════════════ */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; font-family: inherit;
+  cursor: pointer; border: none; transition: all .15s;
+  text-decoration: none; letter-spacing: -.01em;
+}
+.btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 7px; }
+.btn-lg { padding: 11px 22px; font-size: 14px; border-radius: 10px; }
+.btn-full { width: 100%; justify-content: center; }
+
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-ghost { background: var(--bg); color: var(--text2); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--border); color: var(--text); }
+.btn-danger { background: rgba(220,38,38,.06); color: #dc2626; border: 1px solid rgba(220,38,38,.15); }
+.btn-danger:hover { background: rgba(220,38,38,.1); }
+.btn:disabled { opacity: .4; pointer-events: none; }
+
+/* ══════════════════════════════════
+   BADGE
+══════════════════════════════════ */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+}
+.badge-blue { background: #eff6ff; color: var(--accent); }
+.badge-green { background: #f0fdf4; color: #16a34a; }
+.badge-amber { background: #fffbeb; color: #d97706; }
+.badge-red { background: #fef2f2; color: #dc2626; }
+.badge-purple { background: #faf5ff; color: #7c3aed; }
+.badge-gray { background: var(--bg); color: var(--text2); }
+
+/* ══════════════════════════════════
+   MODAL
+══════════════════════════════════ */
+.modal-bg {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.3);
+  backdrop-filter: blur(4px);
+  z-index: 500;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: 16px; padding: 28px;
+  width: 100%; max-width: 440px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,.15);
+  animation: mIn .18s ease;
+}
+@keyframes mIn { from{transform:translateY(10px) scale(.98);opacity:0} to{transform:none;opacity:1} }
+.modal-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 26px; height: 26px; border-radius: 6px;
+  background: var(--bg); border: none; cursor: pointer;
+  font-size: 14px; color: var(--text2);
+  display: flex; align-items: center; justify-content: center;
+  transition: all .12s;
+}
+.modal-close:hover { background: var(--border); }
+.modal-title { font-size: 18px; font-weight: 700; letter-spacing: -.3px; margin-bottom: 5px; }
+.modal-sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; line-height: 1.5; }
+
+/* ══════════════════════════════════
+   TOAST
+══════════════════════════════════ */
+#toasts {
+  position: fixed; bottom: 24px; right: 24px;
+  display: flex; flex-direction: column; gap: 8px; z-index: 9999;
+}
+.toast {
+  background: #111827; color: white;
+  padding: 11px 16px; border-radius: 10px;
+  font-size: 13px; font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,.2);
+  animation: tIn .2s cubic-bezier(.34,1.56,.64,1);
+  max-width: 320px;
+}
+.toast.success { background: #15803d; }
+.toast.error { background: #b91c1c; }
+.toast.info { background: #1d4ed8; }
+@keyframes tIn { from{transform:translateX(12px);opacity:0} to{transform:none;opacity:1} }
+
+/* ══════════════════════════════════
+   TOOL MODAL (when clicking a tool)
+══════════════════════════════════ */
+.tool-modal-thumb {
+  width: 100%; aspect-ratio: 16/9;
+  border-radius: 10px; overflow: hidden;
+  margin-bottom: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 52px;
+}
+.tool-modal-desc { font-size: 14px; color: var(--text2); line-height: 1.6; margin-bottom: 20px; }
+.tool-modal-options { display: flex; flex-direction: column; gap: 10px; }
+.tool-option {
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 12px 14px;
+  cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; gap: 12px;
+}
+.tool-option:hover { border-color: #93c5fd; background: var(--accent-light); }
+.tool-option-icon { font-size: 20px; flex-shrink: 0; }
+.tool-option-name { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
+.tool-option-hint { font-size: 12px; color: var(--text2); }
+
+/* profile page */
+.profile-grid { display: grid; grid-template-columns: 240px 1fr; gap: 20px; }
+.profile-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 24px 20px; text-align: center;
+  box-shadow: var(--shadow);
+}
+.profile-av {
+  width: 72px; height: 72px; border-radius: 18px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; font-weight: 700; color: white;
+  margin: 0 auto 12px;
+}
+.profile-name { font-size: 17px; font-weight: 700; margin-bottom: 3px; }
+.profile-email { font-size: 13px; color: var(--text2); margin-bottom: 12px; }
+
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.stat-item { background: var(--bg); border-radius: 8px; padding: 10px; text-align: center; }
+.stat-n { font-size: 20px; font-weight: 700; color: var(--accent); letter-spacing: -.5px; }
+.stat-l { font-size: 11px; color: var(--text3); margin-top: 1px; font-family: 'JetBrains Mono', monospace; }
+
+/* usage */
+.usage-wrap { margin-bottom: 10px; }
+.usage-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 5px; font-family: 'JetBrains Mono', monospace; }
+.usage-track { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.usage-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .5s; }
+.usage-fill.amber { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.usage-fill.green { background: linear-gradient(90deg, #16a34a, #4ade80); }
+
+/* dropdown */
+.dd { position: relative; display: inline-block; }
+.dd-menu {
+  display: none; position: absolute;
+  top: calc(100%+5px); right: 0;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 5px; min-width: 170px;
+  box-shadow: var(--shadow-lg); z-index: 200;
+  animation: dIn .12s ease;
+}
+@keyframes dIn { from{transform:translateY(-4px);opacity:0} to{transform:none;opacity:1} }
+.dd.open .dd-menu { display: block; }
+.dd-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 11px; border-radius: 7px;
+  font-size: 13px; color: var(--text2);
+  cursor: pointer; transition: all .12s;
+}
+.dd-item:hover { background: var(--bg); color: var(--text); }
+.dd-item.red { color: #dc2626; }
+.dd-item.red:hover { background: #fef2f2; }
+.dd-sep { height: 1px; background: var(--border); margin: 4px 0; }
+
+/* user row in sidebar */
+.user-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px; border-radius: 8px; cursor: pointer;
+  transition: background .12s; margin-bottom: 0;
+}
+.user-row:hover { background: var(--bg); }
+.user-av {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: white;
+  flex-shrink: 0;
+}
+.user-info { flex: 1; min-width: 0; transition: opacity .2s; }
+.sidebar.collapsed .user-info { opacity: 0; pointer-events: none; }
+.user-name { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-plan { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+
+@media (max-width: 900px) {
+  .tools-list-grid { grid-template-columns: repeat(2,1fr); }
+  .profile-grid { grid-template-columns: 1fr; }
+  .settings-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- ════════════════════ SIDEBAR ════════════════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="9" cy="9" r="7" stroke="white" stroke-width="1.8"/>
+        <circle cx="9" cy="9" r="3" fill="white"/>
+        <line x1="9" y1="2" x2="9" y2="5" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+        <line x1="9" y1="13" x2="9" y2="16" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+        <line x1="2" y1="9" x2="5" y2="9" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+        <line x1="13" y1="9" x2="16" y2="9" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="logo-text">DJASE</span>
+    <div class="sidebar-toggle" onclick="toggleSidebar()" id="sb-toggle">◀</div>
+  </div>
+
+  <div class="sidebar-nav">
+    <div class="nav-item active" onclick="showPage('main','Главная')">
+      <span class="nav-item-icon">🏠</span>
+      <span class="nav-item-label">Главная</span>
+    </div>
+    <div class="nav-item" onclick="showPage('chat','Чат')">
+      <span class="nav-item-icon">💬</span>
+      <span class="nav-item-label">Чат</span>
+    </div>
+    <div class="nav-item" onclick="showPage('images','Изображения')">
+      <span class="nav-item-icon">🖼️</span>
+      <span class="nav-item-label">Изображения</span>
+    </div>
+    <div class="nav-item" onclick="showPage('video','Видео')">
+      <span class="nav-item-icon">🎬</span>
+      <span class="nav-item-label">Видео</span>
+    </div>
+    <div class="nav-item" onclick="showPage('audio','Аудио')">
+      <span class="nav-item-icon">🎵</span>
+      <span class="nav-item-label">Аудио</span>
+    </div>
+    <div class="nav-item" onclick="showPage('tools','Инструменты')">
+      <span class="nav-item-icon">🔧</span>
+      <span class="nav-item-label">Инструменты</span>
+    </div>
+
+    <div style="height:8px"></div>
+    <div style="height:1px;background:var(--border);margin:0 4px"></div>
+
+    <div class="nav-item" onclick="showPage('history','История')">
+      <span class="nav-item-icon">🕐</span>
+      <span class="nav-item-label">История</span>
+    </div>
+    <div class="nav-item" onclick="showPage('settings','Настройки')">
+      <span class="nav-item-icon">⚙️</span>
+      <span class="nav-item-label">Настройки</span>
+    </div>
+    <div class="nav-item" onclick="toast('Открываем поддержку...','info')">
+      <span class="nav-item-icon">✈️</span>
+      <span class="nav-item-label">Поддержка</span>
+    </div>
+  </div>
+
+  <div class="sidebar-foot">
+    <div class="dd" id="user-dd" style="width:100%;margin-bottom:10px">
+      <div class="user-row" onclick="toggleDD('user-dd')">
+        <div class="user-av" id="s-av">AT</div>
+        <div class="user-info">
+          <div class="user-name" id="s-name">Alex Thompson</div>
+          <div class="user-plan">Free Plan</div>
+        </div>
+      </div>
+      <div class="dd-menu">
+        <div class="dd-item" onclick="showPage('profile','Профиль')">👤 Профиль</div>
+        <div class="dd-item" onclick="showPage('billing','Тарифы')">💳 Тарифы</div>
+        <div class="dd-item" onclick="showPage('settings','Настройки')">⚙️ Настройки</div>
+        <div class="dd-sep"></div>
+        <div class="dd-item red" onclick="goLogout()">🚪 Выйти</div>
+      </div>
+    </div>
+    <div class="token-block">
+      <div class="token-row">
+        <span class="token-label">Токены слов:</span>
+        <span class="token-val" id="tok-words">8 245</span>
+      </div>
+      <div class="token-row">
+        <span class="token-label">Токены медиа:</span>
+        <span class="token-val" id="tok-media">0.0</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ════════════════════ MAIN ════════════════════ -->
+<div class="main">
+
+  <!-- PAGE HEAD (dynamic) -->
+  <div class="page-head" id="page-head">
+    <div class="page-head-top">
+      <h1 id="page-title">Главная</h1>
+      <div class="head-actions" id="head-actions">
+        <div class="search-box" id="head-search" style="display:none">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Поиск..." id="search-input" oninput="handleSearch(this.value)">
+        </div>
+        <div class="model-select-pill" id="model-pill" style="display:none" onclick="openModal('model-modal')">
+          <div class="model-dot"></div>
+          <span id="cur-model">GPT-4o</span>
+          <span style="color:var(--text3);font-size:11px">▾</span>
+        </div>
+      </div>
+    </div>
+    <div class="filter-tabs" id="filter-tabs"></div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ═══ MAIN / HOME PAGE ═══ -->
+    <div id="page-main" class="page active">
+      <div style="max-width:680px;margin:0 auto;padding:20px 0">
+        <div style="text-align:center;margin-bottom:40px">
+          <div style="width:64px;height:64px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px">🌐</div>
+          <h2 style="font-size:26px;font-weight:800;letter-spacing:-.6px;margin-bottom:10px">Добро пожаловать в DJASE</h2>
+          <p style="color:var(--text2);font-size:15px;line-height:1.7">Платформа искусственного интеллекта нового поколения.<br>Изображения, видео, аудио, инструменты — всё в одном месте.</p>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:all .2s;box-shadow:var(--shadow)" onclick="showPage('images','Изображения')" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.transform='';this.style.boxShadow='var(--shadow)'">
+            <div style="font-size:28px;margin-bottom:10px">🖼️</div>
+            <div style="font-size:14px;font-weight:700;margin-bottom:4px">Изображения</div>
+            <div style="font-size:12.5px;color:var(--text2)">Генератор, редактор, фотосессия, коллаж и многое другое</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:all .2s;box-shadow:var(--shadow)" onclick="showPage('video','Видео')" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.transform='';this.style.boxShadow='var(--shadow)'">
+            <div style="font-size:28px;margin-bottom:10px">🎬</div>
+            <div style="font-size:14px;font-weight:700;margin-bottom:4px">Видео</div>
+            <div style="font-size:12.5px;color:var(--text2)">Оживление фото, танцы, рекламные ролики, эффекты</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:all .2s;box-shadow:var(--shadow)" onclick="showPage('audio','Аудио')" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.transform='';this.style.boxShadow='var(--shadow)'">
+            <div style="font-size:28px;margin-bottom:10px">🎵</div>
+            <div style="font-size:14px;font-weight:700;margin-bottom:4px">Аудио</div>
+            <div style="font-size:12.5px;color:var(--text2)">Генератор песен, озвучка, мелодии, изоляция звука</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:all .2s;box-shadow:var(--shadow)" onclick="showPage('tools','Инструменты')" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.transform='';this.style.boxShadow='var(--shadow)'">
+            <div style="font-size:28px;margin-bottom:10px">🔧</div>
+            <div style="font-size:14px;font-weight:700;margin-bottom:4px">Инструменты</div>
+            <div style="font-size:12.5px;color:var(--text2)">50+ промптов для рекламы, соцсетей, бизнеса, маркетплейсов</div>
+          </div>
+        </div>
+        <div style="margin-top:20px;background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1px solid #bfdbfe;border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px;cursor:pointer" onclick="showPage('chat','Чат')">
+          <div style="font-size:32px">💬</div>
+          <div>
+            <div style="font-size:14px;font-weight:700;margin-bottom:3px">DJASE Chat</div>
+            <div style="font-size:12.5px;color:var(--text2)">Умный AI-помощник для любых задач — анализ, написание, код, перевод и многое другое</div>
+          </div>
+          <div style="margin-left:auto;color:var(--accent);font-size:18px">→</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ CHAT PAGE ═══ -->
+    <div id="page-chat" class="page" style="height:100%;display:none;flex-direction:column">
+      <div class="chat-messages-area" id="chat-msgs">
+        <div id="chat-welcome">
+          <div class="chat-welcome">
+            <div class="chat-welcome-icon">💬</div>
+            <h2>Привет, <span id="chat-username">Alex</span>!</h2>
+            <p>Чем могу помочь? Выберите тему или напишите свой вопрос.</p>
+          </div>
+          <div class="chat-suggestions">
+            <div class="chat-sugg" onclick="qs('Объясни квантовые вычисления простыми словами')"><div class="chat-sugg-icon">🔬</div><div class="chat-sugg-txt">Объясни квантовые вычисления простыми словами</div></div>
+            <div class="chat-sugg" onclick="qs('Напиши структуру бизнес-плана для AI стартапа')"><div class="chat-sugg-icon">📊</div><div class="chat-sugg-txt">Структура бизнес-плана для AI стартапа</div></div>
+            <div class="chat-sugg" onclick="qs('Напиши Python код для парсинга JSON API')"><div class="chat-sugg-icon">💻</div><div class="chat-sugg-txt">Python код для парсинга JSON API</div></div>
+            <div class="chat-sugg" onclick="qs('Придумай 5 идей для контента в Instagram')"><div class="chat-sugg-icon">📱</div><div class="chat-sugg-txt">5 идей для контента в Instagram</div></div>
+          </div>
+        </div>
+        <div id="msgs-list"></div>
+      </div>
+      <div class="chat-input-wrap">
+        <div class="chat-input-box">
+          <div style="display:flex;gap:10px;align-items:flex-end">
+            <textarea class="chat-textarea" id="chat-inp" placeholder="Напишите сообщение... (Enter — отправить)" rows="1" onkeydown="ck(event)" oninput="ar(this)"></textarea>
+            <button class="send-btn" id="send-btn" onclick="sm()">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M11.5 6.5L1 1l2 5.5-2 5.5 10.5-5.5z" fill="white"/></svg>
+            </button>
+          </div>
+          <div class="chat-input-footer">
+            <button class="attach-btn" onclick="toast('Прикрепите файл','info')">📎</button>
+            <button class="attach-btn" onclick="toast('Загрузите изображение','info')">🖼️</button>
+            <button class="attach-btn" onclick="toast('Голосовой ввод','info')">🎙️</button>
+            <div style="flex:1"></div>
+            <span style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace" id="chat-model-hint">GPT-4o · Enter↵</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ IMAGES PAGE ═══ -->
+    <div id="page-images" class="page">
+      <div class="tools-grid" id="images-grid"></div>
+    </div>
+
+    <!-- ═══ VIDEO PAGE ═══ -->
+    <div id="page-video" class="page">
+      <div class="tools-grid" id="video-grid"></div>
+    </div>
+
+    <!-- ═══ AUDIO PAGE ═══ -->
+    <div id="page-audio" class="page">
+      <div class="tools-grid" id="audio-grid"></div>
+    </div>
+
+    <!-- ═══ TOOLS PAGE ═══ -->
+    <div id="page-tools" class="page" id="tools-page">
+      <div id="tools-content"></div>
+    </div>
+
+    <!-- ═══ HISTORY PAGE ═══ -->
+    <div id="page-history" class="page">
+      <div class="history-list" id="history-list"></div>
+    </div>
+
+    <!-- ═══ SETTINGS PAGE ═══ -->
+    <div id="page-settings" class="page">
+      <div class="settings-grid">
+        <div>
+          <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;padding:0 4px">Разделы</div>
+          <div class="settings-nav">
+            <div class="settings-nav-item active" onclick="this.closest('.settings-nav').querySelectorAll('.settings-nav-item').forEach(x=>x.classList.remove('active'));this.classList.add('active')">👤 Профиль</div>
+            <div class="settings-nav-item" onclick="this.closest('.settings-nav').querySelectorAll('.settings-nav-item').forEach(x=>x.classList.remove('active'));this.classList.add('active')">🔒 Безопасность</div>
+            <div class="settings-nav-item" onclick="this.closest('.settings-nav').querySelectorAll('.settings-nav-item').forEach(x=>x.classList.remove('active'));this.classList.add('active')">🎨 Внешний вид</div>
+            <div class="settings-nav-item" onclick="this.closest('.settings-nav').querySelectorAll('.settings-nav-item').forEach(x=>x.classList.remove('active'));this.classList.add('active')">🔔 Уведомления</div>
+            <div class="settings-nav-item" onclick="this.closest('.settings-nav').querySelectorAll('.settings-nav-item').forEach(x=>x.classList.remove('active'));this.classList.add('active')">💳 Тарифы</div>
+            <div class="settings-nav-item" onclick="this.closest('.settings-nav').querySelectorAll('.settings-nav-item').forEach(x=>x.classList.remove('active'));this.classList.add('active')">🔌 API</div>
+          </div>
+        </div>
+        <div>
+          <div class="settings-card">
+            <div class="settings-card-header">Личные данные</div>
+            <div class="settings-card-body">
+              <div class="form-row">
+                <div class="form-group" style="margin:0"><label class="label">Имя</label><input class="input" value="Alex"></div>
+                <div class="form-group" style="margin:0"><label class="label">Фамилия</label><input class="input" value="Thompson"></div>
+              </div>
+              <div style="height:12px"></div>
+              <div class="form-group"><label class="label">Email</label><input class="input" value="alex@example.com" type="email"></div>
+              <div class="form-group"><label class="label">О себе</label><textarea class="input" rows="2" style="resize:none" placeholder="Расскажите о себе..."></textarea></div>
+              <button class="btn btn-primary btn-sm" onclick="toast('Профиль сохранён','success')">Сохранить</button>
+            </div>
+          </div>
+          <div class="settings-card">
+            <div class="settings-card-header">Интерфейс и AI</div>
+            <div class="settings-card-body">
+              <div class="settings-row">
+                <div><div class="settings-row-lbl">Тёмная тема</div><div class="settings-row-hint">Переключение светлой и тёмной темы</div></div>
+                <div class="toggle" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="settings-row">
+                <div><div class="settings-row-lbl">Потоковый вывод</div><div class="settings-row-hint">Ответ появляется по мере генерации</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-lbl">Модель по умолчанию</div>
+                <select class="select-field" style="width:160px">
+                  <option>GPT-4o</option><option>Claude 3.5</option><option>GPT-3.5 Turbo</option><option>Gemini Pro</option>
+                </select>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-lbl">Язык</div>
+                <select class="select-field" style="width:160px">
+                  <option>Русский</option><option>English</option><option>Deutsch</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="settings-card" style="border-color:rgba(220,38,38,.2)">
+            <div class="settings-card-header" style="color:#dc2626">Опасная зона</div>
+            <div class="settings-card-body">
+              <div class="settings-row">
+                <div><div class="settings-row-lbl">Очистить историю</div><div class="settings-row-hint">Все чаты будут удалены навсегда</div></div>
+                <button class="btn btn-danger btn-sm" onclick="toast('История очищена')">Очистить</button>
+              </div>
+              <div class="settings-row">
+                <div><div class="settings-row-lbl">Удалить аккаунт</div><div class="settings-row-hint">Необратимое действие</div></div>
+                <button class="btn btn-danger btn-sm" onclick="toast('Недоступно в демо-режиме','')">Удалить</button>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="toast('Настройки сохранены','success')">Сохранить настройки</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PROFILE PAGE ═══ -->
+    <div id="page-profile" class="page">
+      <div class="profile-grid">
+        <div>
+          <div class="profile-card">
+            <div class="profile-av" id="p-av">AT</div>
+            <div class="profile-name" id="p-name">Alex Thompson</div>
+            <div class="profile-email" id="p-email">alex@example.com</div>
+            <span class="badge badge-blue">Free Plan</span>
+            <div class="stat-grid">
+              <div class="stat-item"><div class="stat-n">247</div><div class="stat-l">чатов</div></div>
+              <div class="stat-item"><div class="stat-n">1.2M</div><div class="stat-l">токенов</div></div>
+              <div class="stat-item"><div class="stat-n">38</div><div class="stat-l">медиа</div></div>
+              <div class="stat-item"><div class="stat-n">12</div><div class="stat-l">документов</div></div>
+            </div>
+            <button class="btn btn-primary btn-sm btn-full" style="margin-top:16px" onclick="openModal('upgrade-modal')">⬆ Улучшить план</button>
+          </div>
+        </div>
+        <div>
+          <div class="settings-card">
+            <div class="settings-card-header">Редактировать профиль</div>
+            <div class="settings-card-body">
+              <div class="form-row">
+                <div class="form-group" style="margin:0"><label class="label">Имя</label><input class="input" id="pf-first" value="Alex"></div>
+                <div class="form-group" style="margin:0"><label class="label">Фамилия</label><input class="input" id="pf-last" value="Thompson"></div>
+              </div>
+              <div style="height:12px"></div>
+              <div class="form-group"><label class="label">Email</label><input class="input" id="pf-email" value="alex@example.com" type="email"></div>
+              <button class="btn btn-primary btn-sm" onclick="saveProfile()">Сохранить</button>
+            </div>
+          </div>
+          <div class="settings-card">
+            <div class="settings-card-header">Использование токенов</div>
+            <div class="settings-card-body">
+              <div class="usage-wrap"><div class="usage-head"><span>Токены слов</span><span>8 245 / 10 000</span></div><div class="usage-track"><div class="usage-fill amber" style="width:82%"></div></div></div>
+              <div class="usage-wrap"><div class="usage-head"><span>Токены медиа</span><span>0 / 100</span></div><div class="usage-track"><div class="usage-fill green" style="width:0%"></div></div></div>
+              <div class="usage-wrap"><div class="usage-head"><span>Сообщения сегодня</span><span>36 / 50</span></div><div class="usage-track"><div class="usage-fill" style="width:72%"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ BILLING PAGE ═══ -->
+    <div id="page-billing" class="page">
+      <div style="max-width:800px">
+        <div class="settings-card" style="margin-bottom:20px">
+          <div class="settings-card-header">Текущий тариф</div>
+          <div class="settings-card-body">
+            <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+              <div>
+                <div style="font-size:20px;font-weight:800;margin-bottom:4px">Free Plan</div>
+                <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Обновляется ежедневно в 00:00</div>
+                <div class="usage-wrap" style="width:280px"><div class="usage-head"><span>Сообщения</span><span>36/50</span></div><div class="usage-track"><div class="usage-fill" style="width:72%"></div></div></div>
+                <div class="usage-wrap" style="width:280px"><div class="usage-head"><span>Медиа-токены</span><span>0/100</span></div><div class="usage-track"><div class="usage-fill green" style="width:0%"></div></div></div>
+              </div>
+              <button class="btn btn-primary" style="margin-left:auto" onclick="openModal('upgrade-modal')">⬆ Перейти на Pro</button>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;box-shadow:var(--shadow)">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:10px">FREE</div>
+            <div style="font-size:32px;font-weight:800;margin-bottom:14px">0 ₽</div>
+            <button class="btn btn-ghost btn-sm btn-full" style="opacity:.5;cursor:default">Текущий</button>
+          </div>
+          <div style="background:var(--surface);border:2px solid var(--accent);border-radius:var(--r);padding:22px;background:linear-gradient(160deg,#eff6ff,var(--surface));box-shadow:var(--shadow-md)">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:10px">PRO ⭐</div>
+            <div style="font-size:32px;font-weight:800;margin-bottom:4px">1 490 ₽</div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:14px;font-family:'JetBrains Mono',monospace">/месяц</div>
+            <button class="btn btn-primary btn-sm btn-full" onclick="openModal('upgrade-modal')">Перейти на Pro</button>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;box-shadow:var(--shadow)">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:10px">BUSINESS</div>
+            <div style="font-size:32px;font-weight:800;margin-bottom:4px">4 990 ₽</div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:14px;font-family:'JetBrains Mono',monospace">/месяц</div>
+            <button class="btn btn-ghost btn-sm btn-full" onclick="toast('sales@djase.com','info')">Связаться</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- MODALS -->
+<div class="modal-bg" id="model-modal">
+  <div class="modal" style="max-width:500px">
+    <button class="modal-close" onclick="closeModal('model-modal')">✕</button>
+    <div class="modal-title">Выбор модели</div>
+    <div class="modal-sub">Активная модель для чата</div>
+    <div id="model-list" style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="tool-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('tool-modal')">✕</button>
+    <div id="tool-modal-content"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="upgrade-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('upgrade-modal')">✕</button>
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-size:36px;margin-bottom:10px">⚡</div>
+      <div class="modal-title">Перейти на Pro</div>
+      <div class="modal-sub">Безлимитные сообщения, все модели, медиа-генерация без ограничений</div>
+    </div>
+    <div style="background:var(--bg);border-radius:10px;padding:14px 16px;margin-bottom:18px">
+      <div style="font-size:32px;font-weight:800;margin-bottom:2px">1 490 ₽ <span style="font-size:14px;color:var(--text2);font-weight:400">/мес</span></div>
+      <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace">или 990 ₽/мес при годовой оплате</div>
+    </div>
+    <div class="form-group"><label class="label">Номер карты</label><input class="input" placeholder="0000 0000 0000 0000"></div>
+    <div class="form-row" style="margin-bottom:18px">
+      <div class="form-group" style="margin:0"><label class="label">Срок</label><input class="input" placeholder="MM / YY"></div>
+      <div class="form-group" style="margin:0"><label class="label">CVV</label><input class="input" placeholder="•••"></div>
+    </div>
+    <button class="btn btn-primary btn-full btn-lg" onclick="pay()">Оформить подписку</button>
+    <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px">🔒 Защищено TLS · Отмена в любое время</div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+/* ════════ DATA ════════ */
+const IMAGES_DATA = [
+  { name:'Генератор Изображений', desc:'Просто напиши, что хочешь увидеть — AI создаст за секунды', grad:'thumb-gradient-1', icon:'🎨', cat:'Нейросети', badge:'' },
+  { name:'Редактор изображений', desc:'Загрузи фото и опиши, что нужно изменить — AI сделает всё', grad:'thumb-gradient-7', icon:'✏️', cat:'Нейросети', badge:'' },
+  { name:'Восстановление фото', desc:'Загрузи старое фото и восстанови детали, цвет, резкость', grad:'thumb-gradient-11', icon:'🔄', cat:'Нейросети', badge:'' },
+  { name:'Тёплый снимок', desc:'Загрузи фото двух людей — получи нежный совместный портрет', grad:'thumb-gradient-5', icon:'❤️', cat:'Тренды', badge:'' },
+  { name:'Нейрофотосессия', desc:'Загрузи своё фото — и создавай образы в любом стиле', grad:'thumb-gradient-3', icon:'📸', cat:'Фотостудия', badge:'' },
+  { name:'Нейро-коллаж', desc:'Загрузите ваше фото и получите художественный коллаж', grad:'thumb-gradient-4', icon:'🖼️', cat:'Фотостудия', badge:'Новое' },
+  { name:'Обложка видео', desc:'Создай яркую обложку для видео за пару кликов', grad:'thumb-gradient-6', icon:'▶️', cat:'Дизайн', badge:'' },
+  { name:'Карточка товара', desc:'Загрузи фото — AI оформит товар для маркетплейса', grad:'thumb-gradient-2', icon:'🛒', cat:'Маркетплейсы', badge:'' },
+  { name:'Чёрно-белая близость', desc:'Загрузите два фото — и получите художественный портрет', grad:'thumb-gradient-11', icon:'🎞️', cat:'Тренды', badge:'' },
+  { name:'Портрет поколений', desc:'Загрузите фото своей семьи и создайте коллаж', grad:'thumb-gradient-10', icon:'👨‍👩‍👧', cat:'Тренды', badge:'' },
+  { name:'Из-за Стены', desc:'Загрузи фото людей и получи эффект стены', grad:'thumb-gradient-8', icon:'🧱', cat:'Тренды', badge:'' },
+  { name:'Платье из цветов', desc:'Загрузи фото и примерь наряд из живых цветов', grad:'thumb-gradient-9', icon:'🌸', cat:'Тренды', badge:'' },
+  { name:'Фотосессия / Мимоза', desc:'Загрузи фото и сияй среди мимоз', grad:'thumb-gradient-3', icon:'🌼', cat:'Фотостудия', badge:'' },
+  { name:'Весенний портрет', desc:'Загрузи фотографии всех женщин — создадим весенний образ', grad:'thumb-gradient-5', icon:'🌺', cat:'Фотостудия', badge:'' },
+  { name:'Любовь это...', desc:'Загрузи фото двух людей и получи комикс в стиле "Love is..."', grad:'thumb-gradient-6', icon:'💕', cat:'Тренды', badge:'' },
+  { name:'Вязаный мир', desc:'Загрузи своё фото и превратись в персонажа из пряжи', grad:'thumb-gradient-2', icon:'🧶', cat:'Тренды', badge:'' },
+  { name:'Фотосессия / Масленица', desc:'Загрузи своё фото и окунись в русские традиции', grad:'thumb-gradient-6', icon:'☀️', cat:'Фотостудия', badge:'' },
+  { name:'Фотосессия с Чебурашкой', desc:'Загрузи фото и окажись рядом с любимым персонажем', grad:'thumb-gradient-4', icon:'🐻', cat:'Тренды', badge:'' },
+];
+
+const VIDEO_DATA = [
+  { name:'Google Veo 3.1', desc:'Видео нового поколения: Veo генерирует реалистичные сцены', grad:'thumb-gradient-7', icon:'▶️', cat:'Нейросети', badge:'Новое' },
+  { name:'Kling Motion Control', desc:'Новейшая модель для переноса движения на видео', grad:'thumb-gradient-2', icon:'🎮', cat:'Нейросети', badge:'Новое' },
+  { name:'Оживление изображения', desc:'Загрузи фото — превратите его в живое видео', grad:'thumb-gradient-11', icon:'✨', cat:'Основное', badge:'' },
+  { name:'Карусель', desc:'Загрузи своё фото и окажись в карусели', grad:'thumb-gradient-3', icon:'🎠', cat:'Движение & Танцы', badge:'' },
+  { name:'Trend Dance #1', desc:'Загрузи своё фото — нейросеть заставит тебя танцевать', grad:'thumb-gradient-1', icon:'💃', cat:'Движение & Танцы', badge:'' },
+  { name:'Trend Dance #21', desc:'Загрузи своё фото — нейросеть заставит тебя танцевать', grad:'thumb-gradient-5', icon:'🕺', cat:'Движение & Танцы', badge:'' },
+  { name:'Рекламный ролик', desc:'Загрузи фото своего продукта и получи рекламу', grad:'thumb-gradient-8', icon:'📣', cat:'Основное', badge:'' },
+  { name:'Видео-поздравление', desc:'Создай персонализированное поздравление с праздником', grad:'thumb-gradient-6', icon:'🎉', cat:'Основное', badge:'' },
+  { name:'Новости', desc:'Создай короткий и насыщенный новостной ролик', grad:'thumb-gradient-11', icon:'📰', cat:'Основное', badge:'' },
+  { name:'AI Блогер', desc:'Создай своего AI Блогера и используй его в роликах', grad:'thumb-gradient-4', icon:'🤖', cat:'Основное', badge:'' },
+  { name:'Бабуля', desc:'Сцена с бабушкой: она может совершенно всё', grad:'thumb-gradient-3', icon:'👵', cat:'Эффекты', badge:'' },
+  { name:'Уличное интервью', desc:'Нейросеть снимет уличное интервью с вашим героем', grad:'thumb-gradient-7', icon:'🎤', cat:'Эффекты', badge:'' },
+  { name:'Внезапный поцелуй', desc:'Загрузи фото и получи романтическое видео', grad:'thumb-gradient-5', icon:'💋', cat:'Эффекты', badge:'' },
+  { name:'AI Эмоции', desc:'Загрузи фото и получи ан эмоции персонажа', grad:'thumb-gradient-9', icon:'😄', cat:'Эффекты', badge:'' },
+  { name:'Объятие Тигра', desc:'Загрузи фото и обнимись с тигром в джунглях', grad:'thumb-gradient-8', icon:'🐯', cat:'Эффекты', badge:'' },
+  { name:'Новости с изображением', desc:'Загрузи фото — и на нем заговорят новости', grad:'thumb-gradient-2', icon:'📡', cat:'Переходы', badge:'' },
+  { name:'AI Бикини', desc:'Пляжная сцена с вашим персонажем', grad:'thumb-gradient-5', icon:'🏖️', cat:'Переходы', badge:'' },
+  { name:'Интервью на фоне', desc:'Загрузи изображение и т. Сделай интервью', grad:'thumb-gradient-11', icon:'🎙️', cat:'Переходы', badge:'' },
+];
+
+const AUDIO_DATA = [
+  { name:'Генератор Песен', desc:'Создаёт оригинальные треки по текстовому описанию в любом жанре', grad:'thumb-gradient-1', icon:'🎵', cat:'Все', badge:'' },
+  { name:'Озвучка текста', desc:'Преврати текст в реалистичную человеческую речь', grad:'thumb-gradient-7', icon:'🔊', cat:'Все', badge:'' },
+  { name:'Звуковые эффекты', desc:'Преврати описание в реалист. звуковой эффект', grad:'thumb-gradient-2', icon:'💥', cat:'Все', badge:'' },
+  { name:'Мелодия', desc:'Преврати идею в мелодию с аккордами', grad:'thumb-gradient-3', icon:'🎸', cat:'Все', badge:'' },
+  { name:'Вокал к мелодии', desc:'Добавь вокал к мелодии — загрузи трек', grad:'thumb-gradient-4', icon:'🎤', cat:'Все', badge:'' },
+  { name:'Мелодия к вокалу', desc:'Добавь мелодию к вокалу — загрузи запись', grad:'thumb-gradient-5', icon:'🥁', cat:'Все', badge:'' },
+  { name:'Аудио Изоляция', desc:'Загрузи своё аудио — ИИ очистит звук от шумов', grad:'thumb-gradient-8', icon:'🎚️', cat:'Все', badge:'' },
+];
+
+const TOOLS_DATA = {
+  'Промпты': [
+    {icon:'💠', name:'Промпт для Veo3'}, {icon:'💠', name:'Создание персонажа (Veo3)'},
+    {icon:'💠', name:'Создание фона/локации (Veo3)'}, {icon:'💠', name:'Диалоги и действия (Veo3)'},
+    {icon:'🎬', name:'Промт для Sora 2'}, {icon:'✨', name:'Улучшитель промптов'},
+  ],
+  'Реклама и маркетинг': [
+    {icon:'✏️', name:'Идеи для рекламы'}, {icon:'🎯', name:'Заголовки для Яндекс Директ'},
+    {icon:'📋', name:'Контент для лендинга'}, {icon:'💬', name:'Рассылка SMS / WhatsApp'},
+    {icon:'🔵', name:'Заголовки для VK Рекламы'}, {icon:'🔵', name:'Описания для VK Рекламы'},
+    {icon:'🔑', name:'Генератор ключевых слов'}, {icon:'🟢', name:'Заголовки для Google Ads'},
+    {icon:'📐', name:'Модель AIDA'}, {icon:'🟢', name:'Описания для Google Ads'},
+    {icon:'🟡', name:'Описания для Яндекс Директ'},
+  ],
+  'Социальные сети': [
+    {icon:'📝', name:'Заголовки для постов'}, {icon:'✍️', name:'Идеи для постов в блоге'},
+    {icon:'📧', name:'Информационная рассылка'}, {icon:'📅', name:'План для блога'},
+    {icon:'💡', name:'Идеи для видео'}, {icon:'🎬', name:'Заголовок к видео на YouTube'},
+    {icon:'📰', name:'Сценарий 15-сек. ролика'}, {icon:'🏷️', name:'Тэги для Youtube'},
+    {icon:'💭', name:'Идеи для блога'}, {icon:'🔴', name:'Описание к видео на YouTube'},
+    {icon:'📱', name:'Сценарий для Reels'}, {icon:'📣', name:'Вступление для блога'},
+  ],
+  'Бизнес и работа': [
+    {icon:'📩', name:'Письмо с извинениями'}, {icon:'📲', name:'Push-уведомление'},
+    {icon:'🌐', name:'Локализация описания RU⇌EN'}, {icon:'📨', name:'Информационная рассылка'},
+    {icon:'❓', name:'FAQ для сайта'}, {icon:'💼', name:'Сопроводительное письмо'},
+    {icon:'🏷️', name:'Слоган для сайта'}, {icon:'👤', name:'Биография'},
+    {icon:'📬', name:'Генератор рассылок'}, {icon:'⭐', name:'Ответы на отзывы'},
+    {icon:'💡', name:'Бизнес стратегия'}, {icon:'📮', name:'Автоответы на Email'},
+    {icon:'🚀', name:'Стартап идеи'}, {icon:'🔍', name:'Генератор Отзывов'},
+    {icon:'📊', name:'Коммерческое предложение'}, {icon:'📄', name:'Конструктор резюме'},
+  ],
+  'Маркетплейсы': [
+    {icon:'📦', name:'Описание товара'}, {icon:'🏷️', name:'Заголовок карточки'},
+    {icon:'⭐', name:'Ответ на отзыв'}, {icon:'🔎', name:'SEO для маркетплейса'},
+    {icon:'📋', name:'Характеристики товара'}, {icon:'💰', name:'Ценовое предложение'},
+    {icon:'🛒', name:'Описание для Ozon'}, {icon:'🟡', name:'Описание для Wildberries'},
+  ],
+  'Образование': [
+    {icon:'📚', name:'Конспект урока'}, {icon:'❓', name:'Тест и вопросы'},
+    {icon:'🎯', name:'Учебный план'}, {icon:'📝', name:'Эссе и сочинение'},
+    {icon:'🔬', name:'Научная статья'}, {icon:'📖', name:'Реферат'},
+    {icon:'🧮', name:'Решение задач'}, {icon:'🌍', name:'Перевод текста'},
+  ],
+  'Развлечения': [
+    {icon:'😄', name:'Анекдот'}, {icon:'🎲', name:'Идеи для игр'},
+    {icon:'📖', name:'Короткий рассказ'}, {icon:'🎭', name:'Сценарий'},
+    {icon:'🔮', name:'Гороскоп'}, {icon:'🎤', name:'Текст для рэпа'},
+  ],
+};
+
+const HISTORY_DATA = [
+  { icon:'🖼️', bg:'#eff6ff', title:'Нейрофотосессия в стиле аниме', meta:'Изображения · 2 часа назад', type:'Медиа', typeBg:'badge-purple' },
+  { icon:'💬', bg:'#f0fdf4', title:'Анализ бизнес-плана AI стартапа', meta:'Чат · 5 часов назад', type:'Текст', typeBg:'badge-blue' },
+  { icon:'🎵', bg:'#fffbeb', title:'Генерация трека в стиле lo-fi', meta:'Аудио · вчера', type:'Аудио', typeBg:'badge-amber' },
+  { icon:'🎬', bg:'#fdf4ff', title:'Оживление свадебного фото', meta:'Видео · вчера', type:'Видео', typeBg:'badge-purple' },
+  { icon:'💬', bg:'#f0fdf4', title:'Python скрипт парсинга данных', meta:'Чат · 2 дня назад', type:'Текст', typeBg:'badge-blue' },
+  { icon:'🖼️', bg:'#fef2f2', title:'Платье из цветов — фотосессия', meta:'Изображения · 3 дня назад', type:'Медиа', typeBg:'badge-purple' },
+  { icon:'🔧', bg:'#f0fdf4', title:'Описание товара для Wildberries', meta:'Инструменты · 4 дня назад', type:'Текст', typeBg:'badge-green' },
+  { icon:'🎬', bg:'#eff6ff', title:'Trend Dance — загрузка фото', meta:'Видео · неделю назад', type:'Видео', typeBg:'badge-purple' },
+];
+
+const MODELS = [
+  { name:'GPT-4o', icon:'🧠', desc:'Флагманская модель OpenAI — умная, быстрая', pro:false },
+  { name:'Claude 3.5 Sonnet', icon:'🎭', desc:'Anthropic — идеален для длинных текстов и анализа', pro:true },
+  { name:'GPT-3.5 Turbo', icon:'⚡', desc:'Быстрый и доступный на Free тарифе', pro:false },
+  { name:'Gemini Pro', icon:'💎', desc:'Google — с поиском в интернете', pro:true },
+  { name:'DeepSeek Coder', icon:'🐋', desc:'Специализирован для разработки кода', pro:false },
+  { name:'Mistral Large', icon:'🌀', desc:'Открытая европейская модель', pro:true },
+];
+
+const AI_RESPS = [
+  q => `Отличный вопрос!\n\nПо теме "${q.substring(0,40)}" могу рассказать следующее:\n\n**Ключевые аспекты:**\n• Первый важный момент — это фундаментальное понимание контекста\n• Второй — практическое применение в реальных задачах\n• Третий — оптимизация и масштабирование результата\n\nГотов разобрать любой из этих пунктов подробнее. Что вас интересует больше всего?`,
+  q => `По запросу "${q.substring(0,35)}":\n\nЭто многогранная тема. Выделю три направления:\n\n1. **Теория** — базовые принципы и механизмы\n2. **Практика** — конкретные примеры применения\n3. **Оптимизация** — как добиться лучших результатов\n\nС чего хотите начать?`,
+];
+
+/* ════════ STATE ════════ */
+let curModel = 'GPT-4o';
+let isTyping = false;
+let sidebarCollapsed = false;
+let curPage = 'main';
+
+/* ════════ INIT ════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  renderGrid('images-grid', IMAGES_DATA);
+  renderGrid('video-grid', VIDEO_DATA);
+  renderGrid('audio-grid', AUDIO_DATA);
+  renderToolsPage();
+  renderHistory();
+  renderModels();
+  const u = getUser();
+  if (u) {
+    const ini = (u.initials || u.name.split(' ').map(w=>w[0]).join('').substring(0,2)).toUpperCase();
+    document.getElementById('s-av').textContent = ini;
+    document.getElementById('s-name').textContent = u.name;
+    document.getElementById('p-av').textContent = ini;
+    document.getElementById('p-name').textContent = u.name;
+    document.getElementById('p-email').textContent = u.email;
+    document.getElementById('chat-username').textContent = u.name.split(' ')[0];
+    document.getElementById('pf-first').value = u.name.split(' ')[0] || '';
+    document.getElementById('pf-last').value = u.name.split(' ')[1] || '';
+    document.getElementById('pf-email').value = u.email || '';
+  }
+});
+
+/* ════════ RENDER GRID ════════ */
+function renderGrid(containerId, data) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = data.map(item => `
+    <div class="tool-card" onclick="openTool('${item.name}','${item.grad}','${item.icon}','${item.desc}')">
+      <div class="tool-card-thumb ${item.grad}">
+        <div style="font-size:40px">${item.icon}</div>
+        ${item.badge ? `<span class="thumb-badge new-badge">${item.badge}</span>` : ''}
+        ${item.cat ? `<span class="thumb-badge" style="top:auto;bottom:8px">${item.cat}</span>` : ''}
+      </div>
+      <div class="tool-card-body">
+        <div class="tool-card-name">${item.name}</div>
+        <div class="tool-card-desc">${item.icon} ${item.desc}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* ════════ RENDER TOOLS PAGE ════════ */
+function renderToolsPage(filter = 'all') {
+  const el = document.getElementById('tools-content');
+  if (!el) return;
+  const sections = filter === 'all' ? Object.keys(TOOLS_DATA)
+    : Object.keys(TOOLS_DATA).filter(k => k.toLowerCase().includes(filter));
+  el.innerHTML = sections.map(section => {
+    const items = TOOLS_DATA[section];
+    return `<div class="tools-section">
+      <div class="tools-section-title">${section}</div>
+      <div class="tools-list-grid">
+        ${items.map(t => `
+          <div class="tool-list-item" onclick="toast('Открываем: ${t.name}','info')">
+            <span class="tool-list-icon">${t.icon}</span>
+            ${t.name}
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterTools(cat, el) {
+  document.querySelectorAll('#tools-filters .filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  if (cat === 'all') renderToolsPage('all');
+  else {
+    const key = Object.keys(TOOLS_DATA).find(k => k.toLowerCase().includes(cat));
+    if (key) {
+      document.getElementById('tools-content').innerHTML = `<div class="tools-section">
+        <div class="tools-section-title">${key}</div>
+        <div class="tools-list-grid">
+          ${TOOLS_DATA[key].map(t => `<div class="tool-list-item" onclick="toast('Открываем: ${t.name}','info')"><span class="tool-list-icon">${t.icon}</span>${t.name}</div>`).join('')}
+        </div></div>`;
+    }
+  }
+}
+
+/* ════════ HISTORY ════════ */
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if (!el) return;
+  el.innerHTML = HISTORY_DATA.map(h => `
+    <div class="history-card" onclick="toast('Открываем историю: ${h.title}','info')">
+      <div class="history-card-icon" style="background:${h.bg}">${h.icon}</div>
+      <div style="flex:1">
+        <div class="history-card-title">${h.title}</div>
+        <div class="history-card-meta">${h.meta}</div>
+      </div>
+      <span class="badge ${h.typeBg} history-card-type">${h.type}</span>
+    </div>`).join('');
+}
+
+/* ════════ MODELS ════════ */
+function renderModels() {
+  const el = document.getElementById('model-list');
+  if (!el) return;
+  el.innerHTML = MODELS.map(m => `
+    <div onclick="pickModel('${m.name}')" style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;cursor:pointer;border:1.5px solid ${m.name===curModel?'var(--accent)':'var(--border2)'};background:${m.name===curModel?'var(--accent-light)':'transparent'};transition:all .15s"
+      onmouseover="if('${m.name}'!==curModel)this.style.background='var(--bg)'" onmouseout="if('${m.name}'!==curModel)this.style.background='transparent'">
+      <span style="font-size:22px">${m.icon}</span>
+      <div style="flex:1">
+        <div style="font-size:13.5px;font-weight:600">${m.name}</div>
+        <div style="font-size:12px;color:var(--text2)">${m.desc}</div>
+      </div>
+      ${m.pro ? '<span class="badge badge-amber">Pro</span>' : '<span class="badge badge-green">Free</span>'}
+      ${m.name===curModel ? '<span style="color:var(--accent);font-size:16px">✓</span>' : ''}
+    </div>`).join('');
+}
+
+function pickModel(name) {
+  curModel = name;
+  document.getElementById('cur-model').textContent = name;
+  document.getElementById('chat-model-hint').textContent = `${name} · Enter↵`;
+  closeModal('model-modal');
+  renderModels();
+  toast(`Модель: ${name}`, 'success');
+}
+
+/* ════════ PAGE NAV ════════ */
+const PAGE_FILTERS = {
+  images: {
+    tabs: ['Все','Нейросети','Тренды','Дизайн','Маркетплейсы','Фотостудия','Обложки','Видео-сетап'],
+    onSelect: (cat) => {
+      const f = cat === 'Все' ? IMAGES_DATA : IMAGES_DATA.filter(i => i.cat === cat);
+      renderGridFiltered('images-grid', f);
+    }
+  },
+  video: {
+    tabs: ['Все','Нейросети','Основное','Движение & Танцы','Эффекты','Переходы'],
+    onSelect: (cat) => {
+      const f = cat === 'Все' ? VIDEO_DATA : VIDEO_DATA.filter(i => i.cat === cat);
+      renderGridFiltered('video-grid', f);
+    }
+  },
+  audio: {
+    tabs: ['Все'],
+    onSelect: () => {}
+  },
+  tools: {
+    tabs: ['Все','Промпты','Реклама и маркетинг','Социальные сети','Бизнес и работа','Маркетплейсы','Образование','Развлечения'],
+    onSelect: (cat) => filterToolsDirect(cat)
+  },
+};
+
+function renderGridFiltered(containerId, data) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = data.map(item => `
+    <div class="tool-card" onclick="openTool('${item.name}','${item.grad}','${item.icon}','${item.desc}')">
+      <div class="tool-card-thumb ${item.grad}">
+        <div style="font-size:40px">${item.icon}</div>
+        ${item.badge ? `<span class="thumb-badge new-badge">${item.badge}</span>` : ''}
+        ${item.cat ? `<span class="thumb-badge" style="top:auto;bottom:8px">${item.cat}</span>` : ''}
+      </div>
+      <div class="tool-card-body">
+        <div class="tool-card-name">${item.name}</div>
+        <div class="tool-card-desc">${item.icon} ${item.desc}</div>
+      </div>
+    </div>`).join('');
+}
+
+function filterToolsDirect(cat) {
+  if (cat === 'Все') { renderToolsPage('all'); return; }
+  const key = Object.keys(TOOLS_DATA).find(k => k === cat);
+  if (!key) return;
+  document.getElementById('tools-content').innerHTML = `<div class="tools-section">
+    <div class="tools-section-title">${key}</div>
+    <div class="tools-list-grid">
+      ${TOOLS_DATA[key].map(t => `<div class="tool-list-item" onclick="toast('${t.name}','info')"><span class="tool-list-icon">${t.icon}</span>${t.name}</div>`).join('')}
+    </div></div>`;
+}
+
+function showPage(id, title) {
+  document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); if(p.id==='page-chat') p.style.display='none'; });
+  const pg = document.getElementById('page-' + id);
+  if (!pg) return;
+  if (id === 'chat') { pg.style.display = 'flex'; } else { pg.classList.add('active'); }
+  curPage = id;
+  document.getElementById('page-title').textContent = title;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navItems = document.querySelectorAll('.nav-item');
+  const map = { main:0, chat:1, images:2, video:3, audio:4, tools:5, history:6, settings:7 };
+  if (map[id] !== undefined) navItems[map[id]]?.classList.add('active');
+
+  // search bar visibility
+  const hasSearch = ['images','video','audio','tools','history'].includes(id);
+  document.getElementById('head-search').style.display = hasSearch ? 'flex' : 'none';
+  document.getElementById('model-pill').style.display = id === 'chat' ? 'flex' : 'none';
+  document.getElementById('search-input').value = '';
+
+  // render filter tabs
+  const filterConf = PAGE_FILTERS[id];
+  const tabsEl = document.getElementById('filter-tabs');
+  if (filterConf) {
+    tabsEl.innerHTML = filterConf.tabs.map((t, i) => `
+      <div class="filter-tab ${i===0?'active':''}" onclick="selectTab(this,'${t}','${id}')">${t}</div>`).join('');
+  } else {
+    tabsEl.innerHTML = '';
+  }
+
+  document.getElementById('user-dd').classList.remove('open');
+}
+
+function selectTab(el, cat, page) {
+  document.querySelectorAll('#filter-tabs .filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const conf = PAGE_FILTERS[page];
+  if (conf) conf.onSelect(cat);
+}
+
+function handleSearch(val) {
+  if (curPage === 'images') {
+    const f = val ? IMAGES_DATA.filter(i => i.name.toLowerCase().includes(val.toLowerCase())) : IMAGES_DATA;
+    renderGridFiltered('images-grid', f);
+  } else if (curPage === 'video') {
+    const f = val ? VIDEO_DATA.filter(i => i.name.toLowerCase().includes(val.toLowerCase())) : VIDEO_DATA;
+    renderGridFiltered('video-grid', f);
+  } else if (curPage === 'tools') {
+    if (!val) { renderToolsPage('all'); return; }
+    const results = {};
+    Object.keys(TOOLS_DATA).forEach(k => {
+      const filtered = TOOLS_DATA[k].filter(t => t.name.toLowerCase().includes(val.toLowerCase()));
+      if (filtered.length) results[k] = filtered;
+    });
+    const el = document.getElementById('tools-content');
+    el.innerHTML = Object.keys(results).map(k => `
+      <div class="tools-section">
+        <div class="tools-section-title">${k}</div>
+        <div class="tools-list-grid">
+          ${results[k].map(t => `<div class="tool-list-item" onclick="toast('${t.name}','info')"><span class="tool-list-icon">${t.icon}</span>${t.name}</div>`).join('')}
+        </div></div>`).join('') || '<p style="color:var(--text3);padding:20px">Ничего не найдено</p>';
+  }
+}
+
+/* ════════ TOOL MODAL ════════ */
+function openTool(name, grad, icon, desc) {
+  document.getElementById('tool-modal-content').innerHTML = `
+    <div class="tool-modal-thumb ${grad}">
+      <span>${icon}</span>
+    </div>
+    <div class="modal-title">${name}</div>
+    <div class="tool-modal-desc">${desc}</div>
+    <div class="tool-modal-options">
+      <div class="tool-option" onclick="startTool('${name}','upload')">
+        <span class="tool-option-icon">📤</span>
+        <div>
+          <div class="tool-option-name">Загрузить файл</div>
+          <div class="tool-option-hint">Загрузите изображение, видео или аудио</div>
+        </div>
+      </div>
+      <div class="tool-option" onclick="startTool('${name}','text')">
+        <span class="tool-option-icon">✍️</span>
+        <div>
+          <div class="tool-option-name">Текстовый запрос</div>
+          <div class="tool-option-hint">Опишите желаемый результат текстом</div>
+        </div>
+      </div>
+    </div>`;
+  openModal('tool-modal');
+}
+
+function startTool(name, mode) {
+  closeModal('tool-modal');
+  toast(`Запускаем "${name}" (${mode === 'upload' ? 'загрузка файла' : 'текстовый запрос'})`, 'info');
+}
+
+/* ════════ CHAT ════════ */
+function ck(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sm(); } }
+function qs(t) { document.getElementById('chat-inp').value = t; sm(); }
+function ar(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 160) + 'px'; }
+
+function sm() {
+  const inp = document.getElementById('chat-inp');
+  const txt = inp.value.trim();
+  if (!txt || isTyping) return;
+  document.getElementById('chat-welcome').style.display = 'none';
+  inp.value = ''; inp.style.height = 'auto';
+  addMsg('user', txt);
+  isTyping = true;
+  document.getElementById('send-btn').disabled = true;
+  const tid = 'ty' + Date.now();
+  addTyping(tid);
+  setTimeout(() => {
+    removeTyping(tid);
+    const r = AI_RESPS[Math.floor(Math.random()*AI_RESPS.length)](txt);
+    addMsg('ai', r);
+    isTyping = false;
+    document.getElementById('send-btn').disabled = false;
+  }, 700 + Math.random()*1100);
+}
+
+function addMsg(role, text) {
+  const u = getUser() || { name:'User', initials:'U' };
+  const ini = (u.initials || u.name.split(' ').map(w=>w[0]).join('').substring(0,2)).toUpperCase();
+  const el = document.createElement('div');
+  el.className = 'msg-wrap';
+  const t = new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+  el.innerHTML = `<div class="message ${role}">
+    <div class="msg-av ${role==='ai'?'ai':'usr'}">${role==='ai'?'🌐':ini}</div>
+    <div class="msg-body">
+      <div class="msg-bubble">${text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div>
+      <div class="msg-time">${t} · ${role==='ai'?curModel:'Вы'}</div>
+    </div></div>`;
+  document.getElementById('msgs-list').appendChild(el);
+  const c = document.getElementById('chat-msgs');
+  c.scrollTop = c.scrollHeight;
+}
+
+function addTyping(id) {
+  const el = document.createElement('div');
+  el.id = id; el.className = 'msg-wrap';
+  el.innerHTML = `<div class="message ai"><div class="msg-av ai">🌐</div><div class="msg-body"><div class="msg-bubble ai" style="padding:0"><div class="typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div></div>`;
+  document.getElementById('msgs-list').appendChild(el);
+  document.getElementById('chat-msgs').scrollTop = 9999;
+}
+function removeTyping(id) { document.getElementById(id)?.remove(); }
+
+/* ════════ SIDEBAR ════════ */
+function toggleSidebar() {
+  sidebarCollapsed = !sidebarCollapsed;
+  const sb = document.getElementById('sidebar');
+  sb.classList.toggle('collapsed', sidebarCollapsed);
+  document.getElementById('sb-toggle').textContent = sidebarCollapsed ? '▶' : '◀';
+}
+
+/* ════════ PROFILE ════════ */
+function saveProfile() {
+  const f = document.getElementById('pf-first').value;
+  const l = document.getElementById('pf-last').value;
+  const e = document.getElementById('pf-email').value;
+  const u = getUser() || {};
+  u.name = `${f} ${l}`.trim(); u.email = e;
+  u.initials = `${f[0]||''}${l[0]||''}`.toUpperCase();
+  setUser(u);
+  const ini = u.initials;
+  document.getElementById('s-av').textContent = ini;
+  document.getElementById('s-name').textContent = u.name;
+  document.getElementById('p-av').textContent = ini;
+  document.getElementById('p-name').textContent = u.name;
+  document.getElementById('p-email').textContent = e;
+  toast('Профиль обновлён', 'success');
+}
+
+/* ════════ BILLING ════════ */
+function pay() {
+  closeModal('upgrade-modal');
+  toast('Обрабатываем платёж...', 'info');
+  setTimeout(() => toast('Подписка Pro активирована! 🎉', 'success'), 1400);
+}
+
+/* ════════ LOGOUT ════════ */
+function goLogout() {
+  sessionStorage.removeItem('djase_user');
+  toast('Выходим...', '');
+  setTimeout(() => location.href = 'login.html', 700);
+}
+
+/* ════════ MODALS ════════ */
+function openModal(id) { document.getElementById(id)?.classList.add('open'); }
+function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-bg')) e.target.classList.remove('open');
+});
+
+/* ════════ DROPDOWN ════════ */
+function toggleDD(id) { document.getElementById(id)?.classList.toggle('open'); }
+document.addEventListener('click', e => {
+  document.querySelectorAll('.dd.open').forEach(d => { if (!d.contains(e.target)) d.classList.remove('open'); });
+});
+
+/* ════════ TOAST ════════ */
+function toast(msg, type = '') {
+  const r = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  r.appendChild(el);
+  setTimeout(() => { el.style.transition = 'all .3s'; el.style.opacity = '0'; el.style.transform = 'translateX(10px)'; setTimeout(() => el.remove(), 300); }, 3000);
+}
+
+/* ════════ SESSION STORAGE ════════ */
+function getUser() { try { const s = sessionStorage.getItem('djase_user'); return s ? JSON.parse(s) : { name:'Alex Thompson', email:'alex@example.com', plan:'Free', initials:'AT' }; } catch { return null; } }
+function setUser(u) { sessionStorage.setItem('djase_user', JSON.stringify(u)); }
+</script>
+</body>
+</html>

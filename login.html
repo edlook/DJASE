@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Войти — DJASE</title>
+<link rel="stylesheet" href="css/main.css">
+<style>
+.auth-layout {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 480px 1fr;
+}
+.auth-panel {
+  background: var(--surface);
+  border-right: 1px solid var(--border2);
+  padding: 0 52px;
+  display: flex; flex-direction: column; justify-content: center;
+  position: relative; min-height: 100vh;
+}
+.auth-panel-top {
+  position: absolute; top: 28px; left: 52px; right: 52px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.auth-visual {
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.auth-blobs { position: absolute; inset: 0; pointer-events: none; }
+.av-blob {
+  position: absolute; border-radius: 50%; filter: blur(70px);
+}
+.av-blob-1 { width: 400px; height: 400px; background: rgba(255,92,53,.12); top: 10%; left: 20%; }
+.av-blob-2 { width: 300px; height: 300px; background: rgba(45,110,245,.08); bottom: 15%; right: 15%; }
+.av-blob-3 { width: 250px; height: 250px; background: rgba(34,160,107,.07); top: 55%; left: 35%; }
+
+.auth-grid-lines {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(26,25,22,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26,25,22,.04) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at 50% 50%, black 20%, transparent 75%);
+}
+
+.auth-visual-card {
+  position: relative; z-index: 1;
+  text-align: center; max-width: 380px; padding: 40px;
+}
+.auth-visual-icon {
+  width: 72px; height: 72px; border-radius: 20px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 22px; font-size: 32px;
+}
+.auth-visual-card h2 {
+  font-family: var(--font-disp);
+  font-size: 26px; font-weight: 700; letter-spacing: -.5px; margin-bottom: 10px;
+}
+.auth-visual-card p { font-size: 14px; color: var(--text2); line-height: 1.6; }
+
+.float-pills {
+  position: absolute; inset: 0; pointer-events: none; z-index: 2;
+}
+.fp {
+  position: absolute;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 14px;
+  font-size: 12px; color: var(--text2);
+  box-shadow: var(--shadow);
+  animation: floatUp 5s ease-in-out infinite;
+  white-space: nowrap;
+}
+.fp-label { font-family: var(--font-mono); font-size: 10px; color: var(--accent); margin-bottom: 2px; }
+@keyframes floatUp {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.auth-form-heading { font-family: var(--font-disp); font-size: 28px; font-weight: 700; letter-spacing: -.7px; margin-bottom: 6px; }
+.auth-form-sub { font-size: 14px; color: var(--text2); margin-bottom: 32px; }
+.auth-form-sub a { color: var(--accent); }
+.auth-form-sub a:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+.forgot-link {
+  float: right; font-size: 12px; color: var(--accent);
+  cursor: pointer; margin-top: -1px; line-height: 1;
+}
+.forgot-link:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+.demo-hint {
+  margin-top: 20px;
+  background: var(--bg2); border-radius: 10px; padding: 12px 14px;
+  font-size: 12.5px; color: var(--text2); text-align: center; line-height: 1.5;
+}
+.demo-hint a { color: var(--accent); cursor: pointer; font-weight: 500; }
+.demo-hint a:hover { text-decoration: underline; }
+
+@media (max-width: 860px) {
+  .auth-layout { grid-template-columns: 1fr; }
+  .auth-visual { display: none; }
+  .auth-panel { padding: 80px 28px; min-height: unset; }
+  .auth-panel-top { left: 28px; right: 28px; }
+}
+</style>
+</head>
+<body>
+
+<div class="auth-layout">
+  <!-- FORM PANEL -->
+  <div class="auth-panel">
+    <div class="auth-panel-top">
+      <a href="index.html" class="logo">
+        <div class="logo-icon" style="width:28px;height:28px;border-radius:8px"><div class="logo-icon-dot" style="width:5px;height:5px"></div></div>
+        DJASE
+      </a>
+      <span style="font-size:13px;color:var(--text2)">Нет аккаунта? <a href="register.html" style="color:var(--accent);font-weight:500">Регистрация</a></span>
+    </div>
+
+    <div style="max-width:380px;width:100%">
+      <div class="auth-form-heading">Добро пожаловать</div>
+      <div class="auth-form-sub">Нет аккаунта? <a href="register.html">Зарегистрироваться бесплатно</a></div>
+
+      <!-- OAuth -->
+      <button class="oauth-btn" onclick="oauthLogin('Google')">
+        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Продолжить через Google
+      </button>
+      <button class="oauth-btn" onclick="oauthLogin('GitHub')">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="color:var(--text)"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+        Продолжить через GitHub
+      </button>
+
+      <div class="divider-or">или через email</div>
+
+      <div class="form-group">
+        <label class="label">Email</label>
+        <input type="email" class="input" id="email" placeholder="your@email.com" autocomplete="email">
+        <div class="form-error" id="email-err">Введите корректный email</div>
+      </div>
+
+      <div class="form-group">
+        <label class="label" style="display:flex;align-items:center;justify-content:space-between">
+          Пароль
+          <span class="forgot-link" onclick="forgotPassword()">Забыли пароль?</span>
+        </label>
+        <div class="pw-wrap">
+          <input type="password" class="input" id="password" placeholder="Введите пароль" autocomplete="current-password">
+          <button class="pw-toggle" type="button" onclick="togglePw('password',this)">👁</button>
+        </div>
+        <div class="form-error" id="pw-err">Неверный пароль</div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:22px">
+        <label class="check-label">
+          <input type="checkbox" id="remember">
+          <span>Запомнить меня на 30 дней</span>
+        </label>
+      </div>
+
+      <button class="btn btn-primary btn-full btn-lg" id="login-btn" onclick="doLogin()">
+        Войти в аккаунт
+      </button>
+
+      <div class="demo-hint">
+        Хотите просто посмотреть?&nbsp;
+        <a onclick="demoLogin()">Войти как демо-пользователь</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISUAL PANEL -->
+  <div class="auth-visual">
+    <div class="auth-blobs">
+      <div class="av-blob av-blob-1"></div>
+      <div class="av-blob av-blob-2"></div>
+      <div class="av-blob av-blob-3"></div>
+    </div>
+    <div class="auth-grid-lines"></div>
+    <div class="float-pills">
+      <div class="fp" style="top:18%;left:8%;animation-delay:0s">
+        <div class="fp-label">// GPT-4o</div>
+        Напиши бизнес-план стартапа...
+      </div>
+      <div class="fp" style="top:55%;right:6%;animation-delay:1.8s">
+        <div class="fp-label">// Code Studio</div>
+        def fibonacci(n): return...
+      </div>
+      <div class="fp" style="bottom:22%;left:6%;animation-delay:3.2s">
+        <div class="fp-label">// Image Gen</div>
+        Futuristic city at sunset, 8K...
+      </div>
+    </div>
+    <div class="auth-visual-card">
+      <div class="auth-visual-icon">🚀</div>
+      <h2>Ваш AI-помощник ждёт</h2>
+      <p>50+ моделей, безлимитные возможности. Войдите и продолжите работу с того места, где остановились.</p>
+    </div>
+  </div>
+</div>
+
+<div id="toast-root"></div>
+<script src="js/main.js"></script>
+<script>
+function doLogin() {
+  const email = document.getElementById('email').value.trim();
+  const pw = document.getElementById('password').value;
+  let valid = true;
+
+  document.getElementById('email-err').classList.remove('show');
+  document.getElementById('pw-err').classList.remove('show');
+  document.getElementById('email').classList.remove('err');
+  document.getElementById('password').classList.remove('err');
+
+  if (!email || !email.includes('@')) {
+    document.getElementById('email').classList.add('err');
+    document.getElementById('email-err').classList.add('show');
+    valid = false;
+  }
+  if (!pw || pw.length < 1) {
+    document.getElementById('password').classList.add('err');
+    document.getElementById('pw-err').classList.add('show');
+    valid = false;
+  }
+  if (!valid) return;
+
+  const btn = document.getElementById('login-btn');
+  btn.textContent = 'Входим...';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    const name = email.split('@')[0];
+    const capName = name.charAt(0).toUpperCase() + name.slice(1);
+    setUser({ name: capName, email, plan: 'Free', initials: capName.substring(0,2).toUpperCase() });
+    location.href = 'dashboard.html';
+  }, 900);
+}
+
+function demoLogin() {
+  setUser(DEMO_USER);
+  toast('Демо-режим активирован', 'success');
+  setTimeout(() => location.href = 'dashboard.html', 600);
+}
+
+function oauthLogin(provider) {
+  const names = { Google: 'Google User', GitHub: 'GitHub User' };
+  const emails = { Google: 'user@gmail.com', GitHub: 'user@github.com' };
+  setUser({ name: names[provider], email: emails[provider], plan: 'Free', initials: provider.substring(0,2).toUpperCase() });
+  toast(`Вход через ${provider}...`, 'info');
+  setTimeout(() => location.href = 'dashboard.html', 800);
+}
+
+function forgotPassword() {
+  const email = document.getElementById('email').value.trim();
+  if (!email || !email.includes('@')) {
+    toast('Введите ваш email в поле выше', '');
+    return;
+  }
+  toast(`Письмо отправлено на ${email}`, 'success');
+}
+
+document.getElementById('password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+</script>
+</body>
+</html>
