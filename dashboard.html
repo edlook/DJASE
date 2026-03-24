@@ -3,1103 +3,681 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DJASE — AI Платформа</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>DJASE</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #f7f8fa;
-  --surface: #ffffff;
-  --sidebar-bg: #ffffff;
-  --accent: #2563eb;
-  --accent-light: #eff6ff;
-  --accent2: #06b6d4;
-  --text: #111827;
-  --text2: #6b7280;
-  --text3: #9ca3af;
-  --border: #e5e7eb;
-  --border2: #f3f4f6;
-  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -1px rgba(0,0,0,.04);
-  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.08), 0 4px 6px -2px rgba(0,0,0,.04);
-  --r: 12px;
-  --r2: 8px;
-  --sidebar-w: 210px;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Inter',sans-serif;background:#f8f9fb;color:#111827;font-size:14px;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:2px}
+
+/* ─── LAYOUT ─── */
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* ─── SIDEBAR ─── */
+.sb{
+  width:200px;flex-shrink:0;
+  background:#fff;
+  border-right:1px solid #e5e7eb;
+  display:flex;flex-direction:column;
+  height:100vh;
+  transition:width .22s ease;
+  overflow:hidden;
+}
+.sb.mini{width:52px}
+
+.sb-logo{
+  height:54px;display:flex;align-items:center;
+  padding:0 14px;border-bottom:1px solid #e5e7eb;
+  gap:9px;flex-shrink:0;position:relative;
+}
+.sb-logo-icon{
+  width:30px;height:30px;flex-shrink:0;
+  background:linear-gradient(135deg,#2563eb,#06b6d4);
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+}
+.sb-logo-icon svg{width:16px;height:16px}
+.sb-logo-name{font-weight:700;font-size:15px;white-space:nowrap;transition:opacity .2s}
+.sb.mini .sb-logo-name{opacity:0;pointer-events:none}
+
+.sb-toggle{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  width:20px;height:20px;background:#f3f4f6;border:1px solid #e5e7eb;
+  border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:#6b7280;transition:all .15s;
+}
+.sb-toggle:hover{background:#e5e7eb}
+
+.sb-nav{flex:1;overflow-y:auto;padding:8px 6px}
+.sb-nav::-webkit-scrollbar{width:0}
+
+.sb-item{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 9px;border-radius:8px;
+  cursor:pointer;color:#4b5563;font-size:13.5px;font-weight:500;
+  transition:all .15s;white-space:nowrap;overflow:hidden;
+  text-decoration:none;
+}
+.sb-item:hover{background:#f3f4f6;color:#111827}
+.sb-item.on{background:#eff6ff;color:#2563eb}
+.sb-item-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.sb-item-lbl{transition:opacity .2s;overflow:hidden;text-overflow:ellipsis}
+.sb.mini .sb-item-lbl{opacity:0;pointer-events:none}
+
+.sb-sep{height:1px;background:#e5e7eb;margin:6px 8px}
+
+.sb-foot{padding:10px 6px;border-top:1px solid #e5e7eb;flex-shrink:0}
+.sb-tokens{
+  background:#f9fafb;border-radius:8px;padding:9px 10px;
+  font-size:11.5px;overflow:hidden;
+  transition:opacity .2s;
+}
+.sb.mini .sb-tokens{opacity:0;pointer-events:none}
+.sb-tok-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.sb-tok-row:last-child{margin-bottom:0}
+.sb-tok-lbl{color:#6b7280}
+.sb-tok-val{font-weight:600;font-family:monospace;color:#111827}
+
+.sb-user{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 8px;border-radius:8px;cursor:pointer;
+  transition:background .15s;margin-bottom:8px;
+}
+.sb-user:hover{background:#f3f4f6}
+.sb-user-av{
+  width:28px;height:28px;border-radius:7px;flex-shrink:0;
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff;
+}
+.sb-user-info{flex:1;min-width:0;transition:opacity .2s}
+.sb.mini .sb-user-info{opacity:0}
+.sb-user-name{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-user-plan{font-size:11px;color:#9ca3af}
+
+/* ─── MAIN ─── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#f8f9fb}
+
+/* ─── PAGE HEAD ─── */
+.ph{background:#fff;border-bottom:1px solid #e5e7eb;flex-shrink:0}
+.ph-top{display:flex;align-items:center;justify-content:space-between;padding:14px 24px 0}
+.ph-title{font-size:20px;font-weight:700;letter-spacing:-.3px}
+.ph-right{display:flex;align-items:center;gap:8px}
+
+.search-box{
+  display:flex;align-items:center;gap:7px;
+  background:#f3f4f6;border:1px solid #e5e7eb;
+  border-radius:8px;padding:7px 11px;min-width:180px;
+}
+.search-box input{background:none;border:none;outline:none;font-family:inherit;font-size:13px;color:#111827;width:100%}
+.search-box input::placeholder{color:#9ca3af}
+
+/* filter tabs */
+.ftabs{display:flex;gap:0;padding:0 24px;overflow-x:auto;margin-top:10px}
+.ftabs::-webkit-scrollbar{height:0}
+.ftab{
+  display:flex;align-items:center;gap:5px;
+  padding:9px 14px;
+  font-size:13px;font-weight:500;color:#6b7280;
+  cursor:pointer;border-bottom:2px solid transparent;
+  transition:all .15s;white-space:nowrap;flex-shrink:0;
+}
+.ftab:hover{color:#111827}
+.ftab.on{color:#2563eb;border-bottom-color:#2563eb;background:#eff6ff}
+.ftab-icon{font-size:14px}
+
+/* ─── CONTENT ─── */
+.content{flex:1;overflow-y:auto;padding:20px 24px}
+.content::-webkit-scrollbar{width:4px}
+
+.page{display:none}
+.page.on{display:block}
+
+/* ─── TOOL CARDS (images/video/audio) ─── */
+.cards-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+  gap:14px;
 }
 
-*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { height: 100%; }
-body {
-  font-family: 'Inter', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 14px;
-  line-height: 1.5;
-  height: 100%;
-  overflow: hidden;
-  -webkit-font-smoothing: antialiased;
+.tool-card{
+  background:#fff;border:1px solid #e5e7eb;border-radius:12px;
+  overflow:hidden;cursor:pointer;
+  transition:transform .18s,box-shadow .18s,border-color .18s;
+  box-shadow:0 1px 2px rgba(0,0,0,.05);
+}
+.tool-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1);border-color:#d1d5db}
+
+.tc-thumb{
+  position:relative;width:100%;aspect-ratio:16/10;
+  overflow:hidden;background:#e5e7eb;
+}
+.tc-thumb img{
+  width:100%;height:100%;object-fit:cover;
+  display:block;
+  transition:transform .3s;
+}
+.tool-card:hover .tc-thumb img{transform:scale(1.04)}
+
+/* fallback if image fails */
+.tc-thumb-fallback{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;
 }
 
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+/* overlay badges */
+.tc-badge{
+  position:absolute;bottom:8px;right:8px;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(4px);
+  border-radius:20px;padding:2px 8px;
+  font-size:10.5px;font-weight:600;color:#fff;
+  letter-spacing:.02em;
+}
+.tc-badge.new{background:rgba(22,163,74,.85)}
 
-/* ══════════════════════════════════
-   LAYOUT
-══════════════════════════════════ */
-.layout { display: flex; height: 100vh; overflow: hidden; }
+.tc-arrow{
+  position:absolute;top:8px;right:8px;
+  width:26px;height:26px;border-radius:50%;
+  background:rgba(255,255,255,.85);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;color:#374151;
+  opacity:0;transition:opacity .18s;
+}
+.tool-card:hover .tc-arrow{opacity:1}
 
-/* ══════════════════════════════════
-   SIDEBAR
-══════════════════════════════════ */
-.sidebar {
-  width: var(--sidebar-w);
-  flex-shrink: 0;
-  background: var(--sidebar-bg);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  transition: width .25s ease;
-  overflow: hidden;
-  position: relative;
-  z-index: 10;
-}
-.sidebar.collapsed { width: 56px; }
-
-.sidebar-logo {
-  height: 56px;
-  display: flex; align-items: center;
-  padding: 0 16px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-  gap: 10px;
-  position: relative;
-}
-.logo-icon {
-  width: 32px; height: 32px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.logo-icon svg { width: 18px; height: 18px; }
-.logo-text {
-  font-weight: 700; font-size: 16px;
-  letter-spacing: -.3px;
-  white-space: nowrap;
-  transition: opacity .2s;
-}
-.sidebar.collapsed .logo-text { opacity: 0; pointer-events: none; }
-
-.sidebar-toggle {
-  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-  width: 22px; height: 22px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  font-size: 10px;
-  color: var(--text2);
-  transition: all .15s;
-}
-.sidebar-toggle:hover { background: var(--border); }
-.sidebar.collapsed .sidebar-toggle { right: auto; left: 50%; transform: translate(-50%,-50%); }
-
-.sidebar-nav { flex: 1; overflow-y: auto; padding: 10px 8px; }
-.sidebar-nav::-webkit-scrollbar { width: 0; }
-
-.nav-section-title {
-  font-size: 10px; font-weight: 600;
-  letter-spacing: .08em; text-transform: uppercase;
-  color: var(--text3);
-  padding: 10px 8px 5px;
-  white-space: nowrap;
-  overflow: hidden;
-  transition: opacity .2s;
-}
-.sidebar.collapsed .nav-section-title { opacity: 0; }
-
-.nav-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  color: var(--text2);
-  font-size: 13.5px; font-weight: 500;
-  transition: all .15s;
-  white-space: nowrap;
-  overflow: hidden;
-  text-decoration: none;
-  position: relative;
-}
-.nav-item:hover { background: var(--bg); color: var(--text); }
-.nav-item.active { background: var(--accent-light); color: var(--accent); }
-.nav-item-icon {
-  width: 20px; height: 20px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; font-size: 16px;
-}
-.nav-item-label { transition: opacity .2s; white-space: nowrap; }
-.sidebar.collapsed .nav-item-label { opacity: 0; pointer-events: none; }
-
-.sidebar-foot {
-  padding: 12px 8px;
-  border-top: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.token-block {
-  background: var(--bg);
-  border-radius: 8px;
-  padding: 10px 12px;
-  overflow: hidden;
-  transition: opacity .2s;
-}
-.sidebar.collapsed .token-block { opacity: 0; }
-.token-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.token-row:last-child { margin-bottom: 0; }
-.token-label { font-size: 12px; color: var(--text2); }
-.token-val { font-size: 12px; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--text); }
-
-/* ══════════════════════════════════
-   MAIN
-══════════════════════════════════ */
-.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
-/* ══════════════════════════════════
-   PAGE HEADER
-══════════════════════════════════ */
-.page-head {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 16px 28px 0;
-  flex-shrink: 0;
-}
-.page-head-top {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 14px;
-}
-.page-head h1 {
-  font-size: 22px; font-weight: 700;
-  letter-spacing: -.4px;
-}
-.head-actions { display: flex; gap: 8px; align-items: center; }
-
-.search-box {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 7px 12px;
-  min-width: 200px;
-}
-.search-box input {
-  background: none; border: none; outline: none;
-  font-family: inherit; font-size: 13px;
-  color: var(--text); width: 100%;
-}
-.search-box input::placeholder { color: var(--text3); }
-.search-icon { color: var(--text3); font-size: 14px; flex-shrink: 0; }
-
-/* Filter tabs */
-.filter-tabs {
-  display: flex; gap: 4px;
-  overflow-x: auto;
-  padding-bottom: 0;
-}
-.filter-tabs::-webkit-scrollbar { height: 0; }
-.filter-tab {
-  display: flex; align-items: center; gap: 6px;
-  padding: 8px 14px;
-  border-radius: 8px 8px 0 0;
-  font-size: 13px; font-weight: 500;
-  cursor: pointer;
-  color: var(--text2);
-  border-bottom: 2px solid transparent;
-  transition: all .15s;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.filter-tab:hover { color: var(--text); background: var(--bg); }
-.filter-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--accent-light); }
-.filter-tab-icon { font-size: 14px; }
-
-/* ══════════════════════════════════
-   CONTENT AREA
-══════════════════════════════════ */
-.content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px 28px;
-}
-.content::-webkit-scrollbar { width: 5px; }
-
-/* page switching */
-.page { display: none; }
-.page.active { display: block; }
-
-/* ══════════════════════════════════
-   TOOL CARDS GRID (Images/Video/Audio)
-══════════════════════════════════ */
-.tools-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
+/* before/after style cards (like "Восстановление фото") */
+.tc-thumb.ba{display:flex}
+.tc-ba-half{flex:1;position:relative;overflow:hidden}
+.tc-ba-half img{width:100%;height:100%;object-fit:cover}
+.tc-ba-arrow{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:28px;height:28px;border-radius:50%;
+  background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;color:#374151;flex-shrink:0;z-index:2;
 }
 
-.tool-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  overflow: hidden;
-  cursor: pointer;
-  transition: all .2s;
-  box-shadow: var(--shadow);
-}
-.tool-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-  border-color: #d1d5db;
-}
+.tc-body{padding:10px 12px 13px}
+.tc-name{font-size:13px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tc-desc{font-size:11.5px;color:#6b7280;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 
-.tool-card-thumb {
-  width: 100%; aspect-ratio: 16/10;
-  background: var(--bg);
-  position: relative;
-  overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
+/* ─── AUDIO cards (illustration style) ─── */
+.audio-card{
+  background:#fff;border:1px solid #e5e7eb;border-radius:12px;
+  overflow:hidden;cursor:pointer;
+  transition:transform .18s,box-shadow .18s;
+  box-shadow:0 1px 2px rgba(0,0,0,.05);
 }
-.tool-card-thumb img {
-  width: 100%; height: 100%;
-  object-fit: cover;
+.audio-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1)}
+.audio-thumb{
+  width:100%;aspect-ratio:16/10;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
 }
-.tool-card-thumb-placeholder {
-  width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 36px;
-}
+.audio-thumb svg{width:70%;height:70%}
+.audio-card-body{padding:10px 12px 13px}
+.audio-card-name{font-size:13px;font-weight:600;margin-bottom:3px}
+.audio-card-desc{font-size:11.5px;color:#6b7280;line-height:1.5}
 
-/* gradient overlays matching the screenshots */
-.thumb-gradient-1 { background: linear-gradient(135deg, #1e3a5f 0%, #0ea5e9 100%); }
-.thumb-gradient-2 { background: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%); }
-.thumb-gradient-3 { background: linear-gradient(135deg, #0f766e 0%, #34d399 100%); }
-.thumb-gradient-4 { background: linear-gradient(135deg, #7c3aed 0%, #c4b5fd 100%); }
-.thumb-gradient-5 { background: linear-gradient(135deg, #be185d 0%, #f9a8d4 100%); }
-.thumb-gradient-6 { background: linear-gradient(135deg, #92400e 0%, #fbbf24 100%); }
-.thumb-gradient-7 { background: linear-gradient(135deg, #1d4ed8 0%, #60a5fa 100%); }
-.thumb-gradient-8 { background: linear-gradient(135deg, #065f46 0%, #6ee7b7 100%); }
-.thumb-gradient-9 { background: linear-gradient(135deg, #831843 0%, #fb7185 100%); }
-.thumb-gradient-10 { background: linear-gradient(135deg, #1e40af 0%, #93c5fd 100%); }
-.thumb-gradient-11 { background: linear-gradient(135deg, #374151 0%, #9ca3af 100%); }
-.thumb-gradient-12 { background: linear-gradient(135deg, #7f1d1d 0%, #fca5a5 100%); }
+/* ─── TOOLS LIST PAGE ─── */
+.tools-section{margin-bottom:24px}
+.tools-sec-title{
+  font-size:14px;font-weight:700;margin-bottom:10px;
+  display:flex;align-items:center;gap:10px;
+}
+.tools-sec-title::after{content:'';flex:1;height:1px;background:#e5e7eb}
+.tools-list{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:1px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;
+}
+.tool-list-item{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 13px;
+  background:#fff;cursor:pointer;font-size:13px;color:#374151;
+  transition:all .13s;
+}
+.tool-list-item:hover{background:#eff6ff;color:#2563eb}
+.tli-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
 
-.thumb-badge {
-  position: absolute; top: 8px; right: 8px;
-  background: rgba(255,255,255,.15);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255,255,255,.2);
-  border-radius: 20px;
-  padding: 2px 8px;
-  font-size: 10px; font-weight: 600;
-  color: white;
-  letter-spacing: .03em;
-}
-.thumb-badge.new-badge { background: rgba(34,197,94,.85); border-color: rgba(34,197,94,.5); }
+/* ─── CHAT ─── */
+.chat-wrap{display:flex;flex-direction:column;height:100%}
+.chat-msgs{flex:1;overflow-y:auto;padding:20px 0}
+.chat-msgs::-webkit-scrollbar{width:3px}
 
-.tool-card-body { padding: 12px 14px 14px; }
-.tool-card-name {
-  font-size: 13.5px; font-weight: 600;
-  margin-bottom: 4px; color: var(--text);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+.chat-hello{max-width:560px;margin:0 auto;text-align:center;padding:40px 24px 20px}
+.chat-hello-icon{
+  width:56px;height:56px;background:linear-gradient(135deg,#2563eb,#06b6d4);
+  border-radius:16px;display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;font-size:26px;
 }
-.tool-card-desc {
-  font-size: 12px; color: var(--text2);
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
+.chat-hello h2{font-size:21px;font-weight:700;letter-spacing:-.3px;margin-bottom:7px}
+.chat-hello p{font-size:13.5px;color:#6b7280;line-height:1.6}
 
-/* ══════════════════════════════════
-   TOOLS PAGE (Инструменты list)
-══════════════════════════════════ */
-.tools-section { margin-bottom: 28px; }
-.tools-section-title {
-  font-size: 15px; font-weight: 700;
-  margin-bottom: 12px;
-  letter-spacing: -.2px;
-  display: flex; align-items: center; gap: 8px;
+.chat-hints{display:grid;grid-template-columns:1fr 1fr;gap:9px;max-width:560px;margin:18px auto;padding:0 24px}
+.hint{
+  background:#fff;border:1px solid #e5e7eb;border-radius:10px;
+  padding:12px 14px;cursor:pointer;transition:all .16s;
+  box-shadow:0 1px 2px rgba(0,0,0,.04);
 }
-.tools-section-title::after {
-  content: '';
-  flex: 1; height: 1px;
-  background: var(--border);
-  margin-left: 4px;
-}
-.tools-list-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 2px;
-}
-.tool-list-item {
-  display: flex; align-items: center; gap: 9px;
-  padding: 9px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  color: var(--text);
-  font-size: 13px;
-  transition: all .15s;
-}
-.tool-list-item:hover { background: var(--accent-light); color: var(--accent); }
-.tool-list-icon { width: 20px; height: 20px; flex-shrink: 0; font-size: 15px; display: flex; align-items: center; }
+.hint:hover{border-color:#bfdbfe;background:#eff6ff}
+.hint-icon{font-size:17px;margin-bottom:6px}
+.hint-txt{font-size:12px;color:#6b7280;line-height:1.5}
 
-/* ══════════════════════════════════
-   CHAT PAGE
-══════════════════════════════════ */
-.chat-layout {
-  display: flex;
-  height: 100%;
-  flex-direction: column;
+.msg-wrap{max-width:740px;margin:0 auto;padding:4px 24px}
+.msg{display:flex;gap:10px;margin-bottom:2px}
+.msg.user{flex-direction:row-reverse}
+.msg-av{
+  width:28px;height:28px;border-radius:7px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;margin-top:3px;
 }
-.chat-messages-area {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px 0;
-}
-.chat-welcome {
-  max-width: 580px; margin: 0 auto;
-  text-align: center;
-  padding: 48px 28px 28px;
-}
-.chat-welcome-icon {
-  width: 60px; height: 60px; margin: 0 auto 18px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  border-radius: 16px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 28px;
-}
-.chat-welcome h2 { font-size: 22px; font-weight: 700; letter-spacing: -.4px; margin-bottom: 8px; }
-.chat-welcome p { font-size: 14px; color: var(--text2); line-height: 1.6; }
+.msg-av.ai{background:linear-gradient(135deg,#2563eb,#06b6d4);color:#fff;font-size:14px}
+.msg-av.me{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff}
+.msg-body{max-width:72%}
+.bubble{padding:10px 14px;border-radius:12px;font-size:13.5px;line-height:1.7}
+.msg.ai .bubble{background:#fff;border:1px solid #e5e7eb;border-radius:4px 12px 12px 12px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.msg.user .bubble{background:#2563eb;color:#fff;border-radius:12px 4px 12px 12px}
+.msg-time{font-size:10.5px;color:#9ca3af;margin-top:3px;padding:0 2px;font-family:monospace}
 
-.chat-suggestions {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 10px; max-width: 580px; margin: 20px auto;
-  padding: 0 28px;
-}
-.chat-sugg {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px; padding: 13px 15px;
-  cursor: pointer; transition: all .18s; text-align: left;
-  box-shadow: var(--shadow);
-}
-.chat-sugg:hover { border-color: #bfdbfe; background: var(--accent-light); }
-.chat-sugg-icon { font-size: 18px; margin-bottom: 7px; }
-.chat-sugg-txt { font-size: 12.5px; color: var(--text2); line-height: 1.5; }
+.typing{display:flex;gap:4px;align-items:center;padding:12px 14px}
+.dot{width:6px;height:6px;border-radius:50%;background:#9ca3af;animation:td 1.2s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.2s}
+.dot:nth-child(3){animation-delay:.4s}
+@keyframes td{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
 
-.msg-wrap { max-width: 760px; margin: 0 auto; padding: 4px 28px; }
-.message { display: flex; gap: 12px; margin-bottom: 2px; }
-.message.user { flex-direction: row-reverse; }
-.msg-av {
-  width: 28px; height: 28px; border-radius: 7px;
-  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; margin-top: 3px;
-}
-.msg-av.ai { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; font-size: 14px; }
-.msg-av.usr { background: linear-gradient(135deg, #7c3aed, #a855f7); color: white; }
-.msg-body { max-width: 72%; }
-.msg-bubble {
-  padding: 10px 14px; border-radius: 12px;
-  font-size: 14px; line-height: 1.7;
-}
-.message.ai .msg-bubble {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 4px 12px 12px 12px; box-shadow: var(--shadow);
-}
-.message.user .msg-bubble {
-  background: var(--accent); color: white;
-  border-radius: 12px 4px 12px 12px;
-}
-.msg-time { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; margin-top: 4px; padding: 0 2px; }
+.chat-foot{padding:10px 24px 18px;background:#fff;border-top:1px solid #e5e7eb;flex-shrink:0;max-width:740px;width:100%;margin:0 auto}
+.chat-box{background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:12px;padding:10px 12px 8px;transition:border-color .16s,box-shadow .16s}
+.chat-box:focus-within{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(37,99,235,.07)}
+.chat-ta{width:100%;background:none;border:none;outline:none;font-family:inherit;font-size:13.5px;color:#111827;line-height:1.6;resize:none;min-height:24px;max-height:150px;overflow-y:auto}
+.chat-ta::placeholder{color:#9ca3af}
+.chat-foot-row{display:flex;align-items:center;gap:5px;padding-top:7px;border-top:1px solid #e5e7eb;margin-top:7px}
+.att-btn{width:28px;height:28px;border-radius:6px;background:none;border:none;cursor:pointer;color:#9ca3af;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .13s}
+.att-btn:hover{background:#f3f4f6;color:#6b7280}
+.send-btn{width:32px;height:32px;border-radius:8px;background:#2563eb;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;transition:all .15s;flex-shrink:0}
+.send-btn:hover{background:#1d4ed8}
+.send-btn:disabled{opacity:.35;pointer-events:none}
+.model-pill{display:flex;align-items:center;gap:6px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:7px;padding:5px 10px;font-size:12.5px;font-weight:500;cursor:pointer;transition:all .14s;margin-left:auto}
+.model-pill:hover{background:#e5e7eb}
+.mpill-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;animation:blink 2.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-.typing { display: flex; gap: 4px; align-items: center; padding: 12px 14px; }
-.typing-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--text3);
-  animation: td 1.2s ease-in-out infinite;
+/* ─── HISTORY ─── */
+.hist-list{display:flex;flex-direction:column;gap:8px}
+.hist-card{
+  background:#fff;border:1px solid #e5e7eb;border-radius:10px;
+  padding:13px 16px;display:flex;align-items:center;gap:12px;
+  cursor:pointer;transition:all .14s;box-shadow:0 1px 2px rgba(0,0,0,.04);
 }
-.typing-dot:nth-child(2) { animation-delay: .2s; }
-.typing-dot:nth-child(3) { animation-delay: .4s; }
-@keyframes td {
-  0%,60%,100% { transform: translateY(0); opacity: .4; }
-  30% { transform: translateY(-5px); opacity: 1; }
-}
+.hist-card:hover{border-color:#bfdbfe;box-shadow:0 3px 10px rgba(0,0,0,.08)}
+.hist-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.hist-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.hist-meta{font-size:11.5px;color:#6b7280}
+.hist-tag{margin-left:auto;font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;flex-shrink:0}
 
-.chat-input-wrap {
-  padding: 12px 28px 20px;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  max-width: 760px; width: 100%; margin: 0 auto;
-  flex-shrink: 0;
-}
-.chat-input-box {
-  background: var(--bg);
-  border: 1.5px solid var(--border);
-  border-radius: 14px; padding: 11px 14px 9px;
-  transition: border-color .18s, box-shadow .18s;
-}
-.chat-input-box:focus-within { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
-.chat-textarea {
-  width: 100%; background: none; border: none; outline: none;
-  font-family: inherit; font-size: 14px; color: var(--text);
-  line-height: 1.6; resize: none;
-  min-height: 24px; max-height: 160px; overflow-y: auto;
-}
-.chat-textarea::placeholder { color: var(--text3); }
-.chat-input-footer {
-  display: flex; align-items: center; gap: 6px;
-  padding-top: 8px; border-top: 1px solid var(--border);
-  margin-top: 8px;
-}
-.send-btn {
-  width: 32px; height: 32px; border-radius: 8px;
-  background: var(--accent); border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  color: white; font-size: 14px;
-  transition: all .15s; flex-shrink: 0;
-}
-.send-btn:hover { background: #1d4ed8; }
-.send-btn:disabled { opacity: .35; pointer-events: none; }
-.attach-btn {
-  width: 28px; height: 28px; border-radius: 6px;
-  background: none; border: none; cursor: pointer;
-  color: var(--text3); font-size: 14px;
-  display: flex; align-items: center; justify-content: center;
-  transition: all .15s;
-}
-.attach-btn:hover { background: var(--border); color: var(--text2); }
+/* ─── SETTINGS ─── */
+.settings-grid{display:grid;grid-template-columns:200px 1fr;gap:18px}
+.s-nav{display:flex;flex-direction:column;gap:2px}
+.s-nav-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:#6b7280;transition:all .13s}
+.s-nav-item:hover{background:#f3f4f6;color:#111827}
+.s-nav-item.on{background:#eff6ff;color:#2563eb}
+.s-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;margin-bottom:14px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.s-card-head{padding:14px 18px;border-bottom:1px solid #e5e7eb;font-size:13.5px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.s-card-body{padding:18px}
+.s-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #f3f4f6}
+.s-row:last-child{border-bottom:none;padding-bottom:0}
+.s-row:first-child{padding-top:0}
+.s-row-lbl{font-size:13px;font-weight:500;margin-bottom:1px}
+.s-row-hint{font-size:11.5px;color:#9ca3af}
+.tog{width:38px;height:21px;border-radius:11px;background:#d1d5db;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.tog.on{background:#2563eb}
+.tog::after{content:'';position:absolute;width:15px;height:15px;border-radius:50%;background:#fff;top:3px;left:3px;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s}
+.tog.on::after{left:20px}
 
-/* ══════════════════════════════════
-   MODEL SELECT PILL (topbar)
-══════════════════════════════════ */
-.model-select-pill {
-  display: flex; align-items: center; gap: 7px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px; padding: 6px 12px;
-  font-size: 13px; font-weight: 500;
-  cursor: pointer; transition: all .15s;
-}
-.model-select-pill:hover { background: var(--border); }
-.model-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 0 2px rgba(34,197,94,.2);
-  animation: blink 2.5s ease-in-out infinite;
-}
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+/* ─── FORMS ─── */
+.inp{width:100%;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 11px;font-family:inherit;font-size:13px;color:#111827;outline:none;transition:border-color .14s}
+.inp:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.07)}
+.inp::placeholder{color:#9ca3af}
+.sel{background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:8px;padding:7px 11px;font-family:inherit;font-size:13px;color:#111827;outline:none;cursor:pointer;appearance:none;transition:border-color .14s}
+.sel:focus{border-color:#2563eb}
+.lbl{display:block;font-size:12px;font-weight:500;color:#6b7280;margin-bottom:4px}
+.fg{margin-bottom:12px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:11px}
 
-/* ══════════════════════════════════
-   HISTORY PAGE
-══════════════════════════════════ */
-.history-list { display: flex; flex-direction: column; gap: 8px; }
-.history-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px; padding: 14px 18px;
-  display: flex; align-items: center; gap: 14px;
-  cursor: pointer; transition: all .15s; box-shadow: var(--shadow);
-}
-.history-card:hover { border-color: #bfdbfe; box-shadow: var(--shadow-md); }
-.history-card-icon {
-  width: 36px; height: 36px; border-radius: 9px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; flex-shrink: 0;
-}
-.history-card-title { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
-.history-card-meta { font-size: 12px; color: var(--text2); }
-.history-card-type {
-  margin-left: auto; flex-shrink: 0;
-  font-size: 11px; font-weight: 500;
-  padding: 3px 9px; border-radius: 20px;
-}
+/* ─── BUTTONS ─── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 15px;border-radius:8px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;border:none;transition:all .14s;letter-spacing:-.01em}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:7px}
+.btn-lg{padding:11px 20px;font-size:14px;border-radius:10px}
+.btn-full{width:100%;justify-content:center}
+.btn-primary{background:#2563eb;color:#fff}.btn-primary:hover{background:#1d4ed8}
+.btn-ghost{background:#f3f4f6;color:#374151;border:1px solid #e5e7eb}.btn-ghost:hover{background:#e5e7eb}
+.btn-danger{background:rgba(220,38,38,.06);color:#dc2626;border:1px solid rgba(220,38,38,.14)}.btn-danger:hover{background:rgba(220,38,38,.1)}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-blue{background:#eff6ff;color:#2563eb}
+.badge-green{background:#f0fdf4;color:#16a34a}
+.badge-amber{background:#fffbeb;color:#d97706}
+.badge-purple{background:#faf5ff;color:#7c3aed}
+.badge-gray{background:#f3f4f6;color:#6b7280}
 
-/* ══════════════════════════════════
-   SETTINGS PAGE
-══════════════════════════════════ */
-.settings-grid { display: grid; grid-template-columns: 220px 1fr; gap: 20px; }
-.settings-nav { display: flex; flex-direction: column; gap: 2px; }
-.settings-nav-item {
-  display: flex; align-items: center; gap: 9px;
-  padding: 9px 12px; border-radius: 8px;
-  cursor: pointer; font-size: 13.5px; font-weight: 500;
-  color: var(--text2); transition: all .15s;
-}
-.settings-nav-item:hover { background: var(--bg); color: var(--text); }
-.settings-nav-item.active { background: var(--accent-light); color: var(--accent); }
+/* ─── PROFILE ─── */
+.prof-grid{display:grid;grid-template-columns:230px 1fr;gap:18px}
+.prof-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:22px 18px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.prof-av{width:68px;height:68px;border-radius:16px;background:linear-gradient(135deg,#2563eb,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;margin:0 auto 11px}
+.prof-name{font-size:16px;font-weight:700;margin-bottom:2px}
+.prof-email{font-size:12.5px;color:#6b7280;margin-bottom:12px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:14px;padding-top:14px;border-top:1px solid #e5e7eb}
+.stat-item{background:#f9fafb;border-radius:8px;padding:9px;text-align:center}
+.stat-n{font-size:18px;font-weight:700;color:#2563eb;letter-spacing:-.4px}
+.stat-l{font-size:10.5px;color:#9ca3af;margin-top:1px;font-family:monospace}
 
-.settings-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r); overflow: hidden; margin-bottom: 16px;
-  box-shadow: var(--shadow);
-}
-.settings-card-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
-  font-size: 14px; font-weight: 700;
-  letter-spacing: -.2px;
-  display: flex; align-items: center; justify-content: space-between;
-}
-.settings-card-body { padding: 20px; }
-.settings-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 13px 0; border-bottom: 1px solid var(--border2);
-}
-.settings-row:last-child { border-bottom: none; padding-bottom: 0; }
-.settings-row:first-child { padding-top: 0; }
-.settings-row-lbl { font-size: 13.5px; font-weight: 500; margin-bottom: 2px; }
-.settings-row-hint { font-size: 12px; color: var(--text3); }
+/* usage bars */
+.ub{margin-bottom:9px}
+.ub-head{display:flex;justify-content:space-between;font-size:11.5px;color:#6b7280;margin-bottom:4px;font-family:monospace}
+.ub-track{height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden}
+.ub-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#2563eb,#06b6d4);transition:width .5s}
+.ub-fill.amber{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+.ub-fill.green{background:linear-gradient(90deg,#16a34a,#4ade80)}
 
-.toggle {
-  width: 40px; height: 22px; border-radius: 11px;
-  background: #d1d5db;
-  cursor: pointer; position: relative; transition: background .2s; flex-shrink: 0;
-}
-.toggle.on { background: var(--accent); }
-.toggle::after {
-  content: '';
-  position: absolute;
-  width: 16px; height: 16px; border-radius: 50%;
-  background: white;
-  top: 3px; left: 3px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.2);
-  transition: left .2s;
-}
-.toggle.on::after { left: 21px; }
+/* ─── DROPDOWN ─── */
+.dd{position:relative;display:inline-block}
+.dd-menu{display:none;position:absolute;top:calc(100% + 5px);right:0;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:5px;min-width:165px;box-shadow:0 8px 24px rgba(0,0,0,.1);z-index:200;animation:din .13s ease}
+@keyframes din{from{transform:translateY(-4px);opacity:0}to{transform:none;opacity:1}}
+.dd.open .dd-menu{display:block}
+.dd-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;font-size:13px;color:#6b7280;cursor:pointer;transition:all .12s}
+.dd-item:hover{background:#f3f4f6;color:#111827}
+.dd-item.red{color:#dc2626}.dd-item.red:hover{background:#fef2f2}
+.dd-sep{height:1px;background:#e5e7eb;margin:4px 0}
 
-/* ══════════════════════════════════
-   FORM ELEMENTS
-══════════════════════════════════ */
-.input {
-  background: var(--bg);
-  border: 1.5px solid var(--border);
-  border-radius: 8px; padding: 9px 12px;
-  font-family: inherit; font-size: 13.5px;
-  color: var(--text); outline: none; width: 100%;
-  transition: border-color .15s, box-shadow .15s;
-}
-.input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
-.input::placeholder { color: var(--text3); }
+/* ─── MODAL ─── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.28);backdrop-filter:blur(4px);z-index:400;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:16px;padding:26px;width:100%;max-width:430px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.13);animation:min .18s ease}
+.modal.lg{max-width:520px}
+@keyframes min{from{transform:translateY(10px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+.modal-x{position:absolute;top:15px;right:15px;width:26px;height:26px;border-radius:6px;background:#f3f4f6;border:none;cursor:pointer;font-size:14px;color:#6b7280;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.modal-x:hover{background:#e5e7eb}
+.modal-title{font-size:17px;font-weight:700;letter-spacing:-.3px;margin-bottom:4px}
+.modal-sub{font-size:13px;color:#6b7280;margin-bottom:18px;line-height:1.5}
 
-.select-field {
-  background: var(--bg); border: 1.5px solid var(--border);
-  border-radius: 8px; padding: 8px 12px;
-  font-family: inherit; font-size: 13px; color: var(--text);
-  outline: none; appearance: none; cursor: pointer;
-  transition: border-color .15s;
-}
-.select-field:focus { border-color: var(--accent); }
+/* tool open modal */
+.tm-thumb{width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;margin-bottom:16px;display:flex;align-items:center;justify-content:center}
+.tm-thumb img{width:100%;height:100%;object-fit:cover}
+.tm-opt{background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .14s;display:flex;align-items:center;gap:11px;margin-bottom:8px}
+.tm-opt:hover{border-color:#93c5fd;background:#eff6ff}
+.tm-opt:last-child{margin-bottom:0}
+.tm-opt-icon{font-size:20px;flex-shrink:0}
+.tm-opt-name{font-size:13px;font-weight:600;margin-bottom:1px}
+.tm-opt-hint{font-size:11.5px;color:#6b7280}
 
-.label { display: block; font-size: 12.5px; font-weight: 500; color: var(--text2); margin-bottom: 5px; }
-.form-group { margin-bottom: 14px; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+/* ─── TOAST ─── */
+#toasts{position:fixed;bottom:22px;right:22px;display:flex;flex-direction:column;gap:7px;z-index:9999}
+.toast{background:#111827;color:#fff;padding:10px 15px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.18);animation:tin .2s cubic-bezier(.34,1.56,.64,1);max-width:310px}
+.toast.ok{background:#15803d}.toast.err{background:#b91c1b}.toast.info{background:#1d4ed8}
+@keyframes tin{from{transform:translateX(10px);opacity:0}to{transform:none;opacity:1}}
 
-/* ══════════════════════════════════
-   BUTTONS
-══════════════════════════════════ */
-.btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: 8px;
-  font-size: 13px; font-weight: 600; font-family: inherit;
-  cursor: pointer; border: none; transition: all .15s;
-  text-decoration: none; letter-spacing: -.01em;
-}
-.btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 7px; }
-.btn-lg { padding: 11px 22px; font-size: 14px; border-radius: 10px; }
-.btn-full { width: 100%; justify-content: center; }
+/* ─── HOME PAGE cards ─── */
+.home-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:640px;margin:0 auto}
+.home-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:20px;cursor:pointer;transition:all .18s;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.home-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.08);border-color:#d1d5db}
+.home-card-icon{font-size:26px;margin-bottom:9px}
+.home-card-name{font-size:14px;font-weight:700;margin-bottom:3px}
+.home-card-desc{font-size:12px;color:#6b7280;line-height:1.5}
 
-.btn-primary { background: var(--accent); color: white; }
-.btn-primary:hover { background: #1d4ed8; }
-.btn-ghost { background: var(--bg); color: var(--text2); border: 1px solid var(--border); }
-.btn-ghost:hover { background: var(--border); color: var(--text); }
-.btn-danger { background: rgba(220,38,38,.06); color: #dc2626; border: 1px solid rgba(220,38,38,.15); }
-.btn-danger:hover { background: rgba(220,38,38,.1); }
-.btn:disabled { opacity: .4; pointer-events: none; }
-
-/* ══════════════════════════════════
-   BADGE
-══════════════════════════════════ */
-.badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 2px 8px; border-radius: 20px;
-  font-size: 11px; font-weight: 600;
-}
-.badge-blue { background: #eff6ff; color: var(--accent); }
-.badge-green { background: #f0fdf4; color: #16a34a; }
-.badge-amber { background: #fffbeb; color: #d97706; }
-.badge-red { background: #fef2f2; color: #dc2626; }
-.badge-purple { background: #faf5ff; color: #7c3aed; }
-.badge-gray { background: var(--bg); color: var(--text2); }
-
-/* ══════════════════════════════════
-   MODAL
-══════════════════════════════════ */
-.modal-bg {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,.3);
-  backdrop-filter: blur(4px);
-  z-index: 500;
-  align-items: center; justify-content: center;
-  padding: 20px;
-}
-.modal-bg.open { display: flex; }
-.modal {
-  background: var(--surface);
-  border-radius: 16px; padding: 28px;
-  width: 100%; max-width: 440px;
-  position: relative;
-  box-shadow: 0 20px 60px rgba(0,0,0,.15);
-  animation: mIn .18s ease;
-}
-@keyframes mIn { from{transform:translateY(10px) scale(.98);opacity:0} to{transform:none;opacity:1} }
-.modal-close {
-  position: absolute; top: 16px; right: 16px;
-  width: 26px; height: 26px; border-radius: 6px;
-  background: var(--bg); border: none; cursor: pointer;
-  font-size: 14px; color: var(--text2);
-  display: flex; align-items: center; justify-content: center;
-  transition: all .12s;
-}
-.modal-close:hover { background: var(--border); }
-.modal-title { font-size: 18px; font-weight: 700; letter-spacing: -.3px; margin-bottom: 5px; }
-.modal-sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; line-height: 1.5; }
-
-/* ══════════════════════════════════
-   TOAST
-══════════════════════════════════ */
-#toasts {
-  position: fixed; bottom: 24px; right: 24px;
-  display: flex; flex-direction: column; gap: 8px; z-index: 9999;
-}
-.toast {
-  background: #111827; color: white;
-  padding: 11px 16px; border-radius: 10px;
-  font-size: 13px; font-weight: 500;
-  box-shadow: 0 8px 24px rgba(0,0,0,.2);
-  animation: tIn .2s cubic-bezier(.34,1.56,.64,1);
-  max-width: 320px;
-}
-.toast.success { background: #15803d; }
-.toast.error { background: #b91c1c; }
-.toast.info { background: #1d4ed8; }
-@keyframes tIn { from{transform:translateX(12px);opacity:0} to{transform:none;opacity:1} }
-
-/* ══════════════════════════════════
-   TOOL MODAL (when clicking a tool)
-══════════════════════════════════ */
-.tool-modal-thumb {
-  width: 100%; aspect-ratio: 16/9;
-  border-radius: 10px; overflow: hidden;
-  margin-bottom: 18px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 52px;
-}
-.tool-modal-desc { font-size: 14px; color: var(--text2); line-height: 1.6; margin-bottom: 20px; }
-.tool-modal-options { display: flex; flex-direction: column; gap: 10px; }
-.tool-option {
-  background: var(--bg); border: 1.5px solid var(--border);
-  border-radius: 10px; padding: 12px 14px;
-  cursor: pointer; transition: all .15s;
-  display: flex; align-items: center; gap: 12px;
-}
-.tool-option:hover { border-color: #93c5fd; background: var(--accent-light); }
-.tool-option-icon { font-size: 20px; flex-shrink: 0; }
-.tool-option-name { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
-.tool-option-hint { font-size: 12px; color: var(--text2); }
-
-/* profile page */
-.profile-grid { display: grid; grid-template-columns: 240px 1fr; gap: 20px; }
-.profile-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r); padding: 24px 20px; text-align: center;
-  box-shadow: var(--shadow);
-}
-.profile-av {
-  width: 72px; height: 72px; border-radius: 18px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 26px; font-weight: 700; color: white;
-  margin: 0 auto 12px;
-}
-.profile-name { font-size: 17px; font-weight: 700; margin-bottom: 3px; }
-.profile-email { font-size: 13px; color: var(--text2); margin-bottom: 12px; }
-
-.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
-.stat-item { background: var(--bg); border-radius: 8px; padding: 10px; text-align: center; }
-.stat-n { font-size: 20px; font-weight: 700; color: var(--accent); letter-spacing: -.5px; }
-.stat-l { font-size: 11px; color: var(--text3); margin-top: 1px; font-family: 'JetBrains Mono', monospace; }
-
-/* usage */
-.usage-wrap { margin-bottom: 10px; }
-.usage-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 5px; font-family: 'JetBrains Mono', monospace; }
-.usage-track { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
-.usage-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .5s; }
-.usage-fill.amber { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-.usage-fill.green { background: linear-gradient(90deg, #16a34a, #4ade80); }
-
-/* dropdown */
-.dd { position: relative; display: inline-block; }
-.dd-menu {
-  display: none; position: absolute;
-  top: calc(100%+5px); right: 0;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 10px; padding: 5px; min-width: 170px;
-  box-shadow: var(--shadow-lg); z-index: 200;
-  animation: dIn .12s ease;
-}
-@keyframes dIn { from{transform:translateY(-4px);opacity:0} to{transform:none;opacity:1} }
-.dd.open .dd-menu { display: block; }
-.dd-item {
-  display: flex; align-items: center; gap: 9px;
-  padding: 8px 11px; border-radius: 7px;
-  font-size: 13px; color: var(--text2);
-  cursor: pointer; transition: all .12s;
-}
-.dd-item:hover { background: var(--bg); color: var(--text); }
-.dd-item.red { color: #dc2626; }
-.dd-item.red:hover { background: #fef2f2; }
-.dd-sep { height: 1px; background: var(--border); margin: 4px 0; }
-
-/* user row in sidebar */
-.user-row {
-  display: flex; align-items: center; gap: 8px;
-  padding: 6px 8px; border-radius: 8px; cursor: pointer;
-  transition: background .12s; margin-bottom: 0;
-}
-.user-row:hover { background: var(--bg); }
-.user-av {
-  width: 28px; height: 28px; border-radius: 7px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 700; color: white;
-  flex-shrink: 0;
-}
-.user-info { flex: 1; min-width: 0; transition: opacity .2s; }
-.sidebar.collapsed .user-info { opacity: 0; pointer-events: none; }
-.user-name { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-plan { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
-
-@media (max-width: 900px) {
-  .tools-list-grid { grid-template-columns: repeat(2,1fr); }
-  .profile-grid { grid-template-columns: 1fr; }
-  .settings-grid { grid-template-columns: 1fr; }
+@media(max-width:860px){
+  .tools-list{grid-template-columns:repeat(2,1fr)}
+  .prof-grid,.settings-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
+<div class="app">
 
-<div class="layout">
-
-<!-- ════════════════════ SIDEBAR ════════════════════ -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <div class="logo-icon">
-      <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="9" cy="9" r="7" stroke="white" stroke-width="1.8"/>
-        <circle cx="9" cy="9" r="3" fill="white"/>
-        <line x1="9" y1="2" x2="9" y2="5" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
-        <line x1="9" y1="13" x2="9" y2="16" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
-        <line x1="2" y1="9" x2="5" y2="9" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
-        <line x1="13" y1="9" x2="16" y2="9" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+<!-- ══════════ SIDEBAR ══════════ -->
+<aside class="sb" id="sb">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">
+      <svg viewBox="0 0 16 16" fill="none">
+        <circle cx="8" cy="8" r="6" stroke="white" stroke-width="1.6"/>
+        <circle cx="8" cy="8" r="2.4" fill="white"/>
+        <line x1="8" y1="2" x2="8" y2="4.4" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="8" y1="11.6" x2="8" y2="14" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="2" y1="8" x2="4.4" y2="8" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="11.6" y1="8" x2="14" y2="8" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
       </svg>
     </div>
-    <span class="logo-text">DJASE</span>
-    <div class="sidebar-toggle" onclick="toggleSidebar()" id="sb-toggle">◀</div>
+    <span class="sb-logo-name">DJASE</span>
+    <div class="sb-toggle" onclick="toggleSb()" id="sb-btn">◀</div>
   </div>
 
-  <div class="sidebar-nav">
-    <div class="nav-item active" onclick="showPage('main','Главная')">
-      <span class="nav-item-icon">🏠</span>
-      <span class="nav-item-label">Главная</span>
+  <nav class="sb-nav">
+    <div class="sb-item on" onclick="go('home','Главная')">
+      <span class="sb-item-icon">🏠</span><span class="sb-item-lbl">Главная</span>
     </div>
-    <div class="nav-item" onclick="showPage('chat','Чат')">
-      <span class="nav-item-icon">💬</span>
-      <span class="nav-item-label">Чат</span>
+    <div class="sb-item" onclick="go('chat','Чат')">
+      <span class="sb-item-icon">💬</span><span class="sb-item-lbl">Чат</span>
     </div>
-    <div class="nav-item" onclick="showPage('images','Изображения')">
-      <span class="nav-item-icon">🖼️</span>
-      <span class="nav-item-label">Изображения</span>
+    <div class="sb-item" onclick="go('images','Изображения')">
+      <span class="sb-item-icon">🖼️</span><span class="sb-item-lbl">Изображения</span>
     </div>
-    <div class="nav-item" onclick="showPage('video','Видео')">
-      <span class="nav-item-icon">🎬</span>
-      <span class="nav-item-label">Видео</span>
+    <div class="sb-item" onclick="go('video','Видео')">
+      <span class="sb-item-icon">🎬</span><span class="sb-item-lbl">Видео</span>
     </div>
-    <div class="nav-item" onclick="showPage('audio','Аудио')">
-      <span class="nav-item-icon">🎵</span>
-      <span class="nav-item-label">Аудио</span>
+    <div class="sb-item" onclick="go('audio','Аудио')">
+      <span class="sb-item-icon">🔊</span><span class="sb-item-lbl">Аудио</span>
     </div>
-    <div class="nav-item" onclick="showPage('tools','Инструменты')">
-      <span class="nav-item-icon">🔧</span>
-      <span class="nav-item-label">Инструменты</span>
+    <div class="sb-item" onclick="go('tools','Инструменты')">
+      <span class="sb-item-icon">🔧</span><span class="sb-item-lbl">Инструменты</span>
     </div>
+    <div class="sb-sep"></div>
+    <div class="sb-item" onclick="go('history','История')">
+      <span class="sb-item-icon">🕐</span><span class="sb-item-lbl">История</span>
+    </div>
+    <div class="sb-item" onclick="go('settings','Настройки')">
+      <span class="sb-item-icon">⚙️</span><span class="sb-item-lbl">Настройки</span>
+    </div>
+    <div class="sb-item" onclick="toast('Открываем Telegram поддержки','info')">
+      <span class="sb-item-icon">✈️</span><span class="sb-item-lbl">Поддержка</span>
+    </div>
+  </nav>
 
-    <div style="height:8px"></div>
-    <div style="height:1px;background:var(--border);margin:0 4px"></div>
-
-    <div class="nav-item" onclick="showPage('history','История')">
-      <span class="nav-item-icon">🕐</span>
-      <span class="nav-item-label">История</span>
-    </div>
-    <div class="nav-item" onclick="showPage('settings','Настройки')">
-      <span class="nav-item-icon">⚙️</span>
-      <span class="nav-item-label">Настройки</span>
-    </div>
-    <div class="nav-item" onclick="toast('Открываем поддержку...','info')">
-      <span class="nav-item-icon">✈️</span>
-      <span class="nav-item-label">Поддержка</span>
-    </div>
-  </div>
-
-  <div class="sidebar-foot">
-    <div class="dd" id="user-dd" style="width:100%;margin-bottom:10px">
-      <div class="user-row" onclick="toggleDD('user-dd')">
-        <div class="user-av" id="s-av">AT</div>
-        <div class="user-info">
-          <div class="user-name" id="s-name">Alex Thompson</div>
-          <div class="user-plan">Free Plan</div>
+  <div class="sb-foot">
+    <div class="dd" id="u-dd" style="width:100%;margin-bottom:8px">
+      <div class="sb-user" onclick="toggleDD('u-dd')">
+        <div class="sb-user-av" id="u-av">AT</div>
+        <div class="sb-user-info">
+          <div class="sb-user-name" id="u-name">Alex Thompson</div>
+          <div class="sb-user-plan">Free Plan</div>
         </div>
       </div>
       <div class="dd-menu">
-        <div class="dd-item" onclick="showPage('profile','Профиль')">👤 Профиль</div>
-        <div class="dd-item" onclick="showPage('billing','Тарифы')">💳 Тарифы</div>
-        <div class="dd-item" onclick="showPage('settings','Настройки')">⚙️ Настройки</div>
+        <div class="dd-item" onclick="go('profile','Профиль')">👤 Профиль</div>
+        <div class="dd-item" onclick="go('billing','Тарифы')">💳 Тарифы</div>
+        <div class="dd-item" onclick="go('settings','Настройки')">⚙️ Настройки</div>
         <div class="dd-sep"></div>
-        <div class="dd-item red" onclick="goLogout()">🚪 Выйти</div>
+        <div class="dd-item red" onclick="logout()">🚪 Выйти</div>
       </div>
     </div>
-    <div class="token-block">
-      <div class="token-row">
-        <span class="token-label">Токены слов:</span>
-        <span class="token-val" id="tok-words">8 245</span>
+    <div class="sb-tokens">
+      <div class="sb-tok-row">
+        <span class="sb-tok-lbl">Токены слов:</span>
+        <span class="sb-tok-val">8 245</span>
       </div>
-      <div class="token-row">
-        <span class="token-label">Токены медиа:</span>
-        <span class="token-val" id="tok-media">0.0</span>
+      <div class="sb-tok-row">
+        <span class="sb-tok-lbl">Токены медиа:</span>
+        <span class="sb-tok-val">0.0</span>
       </div>
     </div>
   </div>
 </aside>
 
-<!-- ════════════════════ MAIN ════════════════════ -->
+<!-- ══════════ MAIN ══════════ -->
 <div class="main">
 
-  <!-- PAGE HEAD (dynamic) -->
-  <div class="page-head" id="page-head">
-    <div class="page-head-top">
-      <h1 id="page-title">Главная</h1>
-      <div class="head-actions" id="head-actions">
-        <div class="search-box" id="head-search" style="display:none">
-          <span class="search-icon">🔍</span>
-          <input type="text" placeholder="Поиск..." id="search-input" oninput="handleSearch(this.value)">
+  <!-- PAGE HEAD -->
+  <div class="ph">
+    <div class="ph-top">
+      <h1 class="ph-title" id="ph-title">Главная</h1>
+      <div class="ph-right">
+        <div class="search-box" id="searchbox" style="display:none">
+          <span style="color:#9ca3af;font-size:14px">🔍</span>
+          <input type="text" placeholder="Поиск..." id="search-inp" oninput="onSearch(this.value)">
         </div>
-        <div class="model-select-pill" id="model-pill" style="display:none" onclick="openModal('model-modal')">
-          <div class="model-dot"></div>
-          <span id="cur-model">GPT-4o</span>
-          <span style="color:var(--text3);font-size:11px">▾</span>
+        <div class="model-pill" id="model-pill-top" style="display:none" onclick="openModal('model-modal')">
+          <div class="mpill-dot"></div>
+          <span id="cur-model-lbl">GPT-4o</span>
+          <span style="color:#9ca3af;font-size:11px">▾</span>
         </div>
       </div>
     </div>
-    <div class="filter-tabs" id="filter-tabs"></div>
+    <div class="ftabs" id="ftabs"></div>
   </div>
 
-  <!-- CONTENT -->
-  <div class="content">
+  <!-- PAGES -->
+  <div class="content" id="content">
 
-    <!-- ═══ MAIN / HOME PAGE ═══ -->
-    <div id="page-main" class="page active">
-      <div style="max-width:680px;margin:0 auto;padding:20px 0">
-        <div style="text-align:center;margin-bottom:40px">
-          <div style="width:64px;height:64px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px">🌐</div>
-          <h2 style="font-size:26px;font-weight:800;letter-spacing:-.6px;margin-bottom:10px">Добро пожаловать в DJASE</h2>
-          <p style="color:var(--text2);font-size:15px;line-height:1.7">Платформа искусственного интеллекта нового поколения.<br>Изображения, видео, аудио, инструменты — всё в одном месте.</p>
+    <!-- HOME -->
+    <div id="p-home" class="page on">
+      <div style="max-width:620px;margin:0 auto;padding:16px 0">
+        <div style="text-align:center;margin-bottom:32px">
+          <div style="width:58px;height:58px;background:linear-gradient(135deg,#2563eb,#06b6d4);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:26px">🌐</div>
+          <h2 style="font-size:22px;font-weight:800;letter-spacing:-.4px;margin-bottom:8px">Добро пожаловать в DJASE</h2>
+          <p style="color:#6b7280;font-size:14px;line-height:1.7">AI-платформа нового поколения. Изображения, видео, аудио и десятки инструментов в одном месте.</p>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:all .2s;box-shadow:var(--shadow)" onclick="showPage('images','Изображения')" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.transform='';this.style.boxShadow='var(--shadow)'">
-            <div style="font-size:28px;margin-bottom:10px">🖼️</div>
-            <div style="font-size:14px;font-weight:700;margin-bottom:4px">Изображения</div>
-            <div style="font-size:12.5px;color:var(--text2)">Генератор, редактор, фотосессия, коллаж и многое другое</div>
-          </div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:all .2s;box-shadow:var(--shadow)" onclick="showPage('video','Видео')" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.transform='';this.style.boxShadow='var(--shadow)'">
-            <div style="font-size:28px;margin-bottom:10px">🎬</div>
-            <div style="font-size:14px;font-weight:700;margin-bottom:4px">Видео</div>
-            <div style="font-size:12.5px;color:var(--text2)">Оживление фото, танцы, рекламные ролики, эффекты</div>
-          </div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:all .2s;box-shadow:var(--shadow)" onclick="showPage('audio','Аудио')" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.transform='';this.style.boxShadow='var(--shadow)'">
-            <div style="font-size:28px;margin-bottom:10px">🎵</div>
-            <div style="font-size:14px;font-weight:700;margin-bottom:4px">Аудио</div>
-            <div style="font-size:12.5px;color:var(--text2)">Генератор песен, озвучка, мелодии, изоляция звука</div>
-          </div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:all .2s;box-shadow:var(--shadow)" onclick="showPage('tools','Инструменты')" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-lg)'" onmouseout="this.style.transform='';this.style.boxShadow='var(--shadow)'">
-            <div style="font-size:28px;margin-bottom:10px">🔧</div>
-            <div style="font-size:14px;font-weight:700;margin-bottom:4px">Инструменты</div>
-            <div style="font-size:12.5px;color:var(--text2)">50+ промптов для рекламы, соцсетей, бизнеса, маркетплейсов</div>
-          </div>
+        <div class="home-grid">
+          <div class="home-card" onclick="go('images','Изображения')"><div class="home-card-icon">🖼️</div><div class="home-card-name">Изображения</div><div class="home-card-desc">Генератор, редактор, нейрофотосессия, коллаж и ещё 15+ инструментов</div></div>
+          <div class="home-card" onclick="go('video','Видео')"><div class="home-card-icon">🎬</div><div class="home-card-name">Видео</div><div class="home-card-desc">Оживление фото, Trend Dance, Kling AI, Veo 3.1 и ещё 15+ инструментов</div></div>
+          <div class="home-card" onclick="go('audio','Аудио')"><div class="home-card-icon">🔊</div><div class="home-card-name">Аудио</div><div class="home-card-desc">Генератор песен, озвучка, мелодии, изоляция звука</div></div>
+          <div class="home-card" onclick="go('tools','Инструменты')"><div class="home-card-icon">🔧</div><div class="home-card-name">Инструменты</div><div class="home-card-desc">50+ промптов для рекламы, соцсетей, бизнеса, маркетплейсов</div></div>
         </div>
-        <div style="margin-top:20px;background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1px solid #bfdbfe;border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px;cursor:pointer" onclick="showPage('chat','Чат')">
-          <div style="font-size:32px">💬</div>
-          <div>
-            <div style="font-size:14px;font-weight:700;margin-bottom:3px">DJASE Chat</div>
-            <div style="font-size:12.5px;color:var(--text2)">Умный AI-помощник для любых задач — анализ, написание, код, перевод и многое другое</div>
-          </div>
-          <div style="margin-left:auto;color:var(--accent);font-size:18px">→</div>
+        <div style="margin-top:12px;background:linear-gradient(90deg,#eff6ff,#f0fdf4);border:1px solid #bfdbfe;border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px;cursor:pointer" onclick="go('chat','Чат')">
+          <span style="font-size:28px">💬</span>
+          <div><div style="font-size:14px;font-weight:700;margin-bottom:2px">DJASE Chat</div><div style="font-size:12.5px;color:#6b7280">Умный AI-помощник — анализ, написание, код, перевод</div></div>
+          <span style="margin-left:auto;color:#2563eb;font-size:18px">→</span>
         </div>
       </div>
     </div>
 
-    <!-- ═══ CHAT PAGE ═══ -->
-    <div id="page-chat" class="page" style="height:100%;display:none;flex-direction:column">
-      <div class="chat-messages-area" id="chat-msgs">
-        <div id="chat-welcome">
-          <div class="chat-welcome">
-            <div class="chat-welcome-icon">💬</div>
-            <h2>Привет, <span id="chat-username">Alex</span>!</h2>
-            <p>Чем могу помочь? Выберите тему или напишите свой вопрос.</p>
+    <!-- CHAT -->
+    <div id="p-chat" class="page" style="height:calc(100vh - 110px);display:none;flex-direction:column">
+      <div class="chat-msgs" id="chat-msgs">
+        <div id="ch-welcome">
+          <div class="chat-hello">
+            <div class="chat-hello-icon">💬</div>
+            <h2>Привет, <span id="ch-uname">Alex</span>!</h2>
+            <p>Чем могу помочь? Выберите тему или напишите вопрос.</p>
           </div>
-          <div class="chat-suggestions">
-            <div class="chat-sugg" onclick="qs('Объясни квантовые вычисления простыми словами')"><div class="chat-sugg-icon">🔬</div><div class="chat-sugg-txt">Объясни квантовые вычисления простыми словами</div></div>
-            <div class="chat-sugg" onclick="qs('Напиши структуру бизнес-плана для AI стартапа')"><div class="chat-sugg-icon">📊</div><div class="chat-sugg-txt">Структура бизнес-плана для AI стартапа</div></div>
-            <div class="chat-sugg" onclick="qs('Напиши Python код для парсинга JSON API')"><div class="chat-sugg-icon">💻</div><div class="chat-sugg-txt">Python код для парсинга JSON API</div></div>
-            <div class="chat-sugg" onclick="qs('Придумай 5 идей для контента в Instagram')"><div class="chat-sugg-icon">📱</div><div class="chat-sugg-txt">5 идей для контента в Instagram</div></div>
+          <div class="chat-hints">
+            <div class="hint" onclick="qs('Объясни квантовые вычисления простыми словами')"><div class="hint-icon">🔬</div><div class="hint-txt">Объясни квантовые вычисления простыми словами</div></div>
+            <div class="hint" onclick="qs('Напиши структуру бизнес-плана для AI стартапа')"><div class="hint-icon">📊</div><div class="hint-txt">Структура бизнес-плана для AI стартапа</div></div>
+            <div class="hint" onclick="qs('Напиши Python функцию парсинга JSON API')"><div class="hint-icon">💻</div><div class="hint-txt">Python функция парсинга JSON API</div></div>
+            <div class="hint" onclick="qs('Придумай 5 идей для контента в Instagram')"><div class="hint-icon">📱</div><div class="hint-txt">5 идей для контента в Instagram</div></div>
           </div>
         </div>
-        <div id="msgs-list"></div>
+        <div id="msgs"></div>
       </div>
-      <div class="chat-input-wrap">
-        <div class="chat-input-box">
-          <div style="display:flex;gap:10px;align-items:flex-end">
-            <textarea class="chat-textarea" id="chat-inp" placeholder="Напишите сообщение... (Enter — отправить)" rows="1" onkeydown="ck(event)" oninput="ar(this)"></textarea>
+      <div class="chat-foot">
+        <div class="chat-box">
+          <div style="display:flex;gap:9px;align-items:flex-end">
+            <textarea class="chat-ta" id="ch-inp" placeholder="Напишите сообщение... (Enter — отправить)" rows="1" onkeydown="ck(event)" oninput="ar(this)"></textarea>
             <button class="send-btn" id="send-btn" onclick="sm()">
               <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M11.5 6.5L1 1l2 5.5-2 5.5 10.5-5.5z" fill="white"/></svg>
             </button>
           </div>
-          <div class="chat-input-footer">
-            <button class="attach-btn" onclick="toast('Прикрепите файл','info')">📎</button>
-            <button class="attach-btn" onclick="toast('Загрузите изображение','info')">🖼️</button>
-            <button class="attach-btn" onclick="toast('Голосовой ввод','info')">🎙️</button>
-            <div style="flex:1"></div>
-            <span style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace" id="chat-model-hint">GPT-4o · Enter↵</span>
+          <div class="chat-foot-row">
+            <button class="att-btn" onclick="toast('Прикрепите файл','info')">📎</button>
+            <button class="att-btn" onclick="toast('Загрузите изображение для анализа','info')">🖼️</button>
+            <button class="att-btn" onclick="toast('Голосовой ввод','info')">🎙️</button>
+            <div class="model-pill" onclick="openModal('model-modal')" style="margin-left:auto">
+              <div class="mpill-dot"></div>
+              <span id="ch-model-lbl">GPT-4o</span>
+              <span style="color:#9ca3af;font-size:11px">▾</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ═══ IMAGES PAGE ═══ -->
-    <div id="page-images" class="page">
-      <div class="tools-grid" id="images-grid"></div>
+    <!-- IMAGES -->
+    <div id="p-images" class="page">
+      <div class="cards-grid" id="img-grid"></div>
     </div>
 
-    <!-- ═══ VIDEO PAGE ═══ -->
-    <div id="page-video" class="page">
-      <div class="tools-grid" id="video-grid"></div>
+    <!-- VIDEO -->
+    <div id="p-video" class="page">
+      <div class="cards-grid" id="vid-grid"></div>
     </div>
 
-    <!-- ═══ AUDIO PAGE ═══ -->
-    <div id="page-audio" class="page">
-      <div class="tools-grid" id="audio-grid"></div>
+    <!-- AUDIO -->
+    <div id="p-audio" class="page">
+      <div class="cards-grid" id="aud-grid"></div>
     </div>
 
-    <!-- ═══ TOOLS PAGE ═══ -->
-    <div id="page-tools" class="page" id="tools-page">
-      <div id="tools-content"></div>
+    <!-- TOOLS -->
+    <div id="p-tools" class="page">
+      <div id="tools-body"></div>
     </div>
 
-    <!-- ═══ HISTORY PAGE ═══ -->
-    <div id="page-history" class="page">
-      <div class="history-list" id="history-list"></div>
+    <!-- HISTORY -->
+    <div id="p-history" class="page">
+      <div class="hist-list" id="hist-list"></div>
     </div>
 
-    <!-- ═══ SETTINGS PAGE ═══ -->
-    <div id="page-settings" class="page">
+    <!-- SETTINGS -->
+    <div id="p-settings" class="page">
       <div class="settings-grid">
         <div>
-          <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;padding:0 4px">Разделы</div>
-          <div class="settings-nav">
-            <div class="settings-nav-item active" onclick="this.closest('.settings-nav').querySelectorAll('.settings-nav-item').forEach(x=>x.classList.remove('active'));this.classList.add('active')">👤 Профиль</div>
-            <div class="settings-nav-item" onclick="this.closest('.settings-nav').querySelectorAll('.settings-nav-item').forEach(x=>x.classList.remove('active'));this.classList.add('active')">🔒 Безопасность</div>
-            <div class="settings-nav-item" onclick="this.closest('.settings-nav').querySelectorAll('.settings-nav-item').forEach(x=>x.classList.remove('active'));this.classList.add('active')">🎨 Внешний вид</div>
-            <div class="settings-nav-item" onclick="this.closest('.settings-nav').querySelectorAll('.settings-nav-item').forEach(x=>x.classList.remove('active'));this.classList.add('active')">🔔 Уведомления</div>
-            <div class="settings-nav-item" onclick="this.closest('.settings-nav').querySelectorAll('.settings-nav-item').forEach(x=>x.classList.remove('active'));this.classList.add('active')">💳 Тарифы</div>
-            <div class="settings-nav-item" onclick="this.closest('.settings-nav').querySelectorAll('.settings-nav-item').forEach(x=>x.classList.remove('active'));this.classList.add('active')">🔌 API</div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#9ca3af;margin-bottom:8px;padding:0 4px">Разделы</div>
+          <div class="s-nav">
+            <div class="s-nav-item on" onclick="sNav(this)">👤 Аккаунт</div>
+            <div class="s-nav-item" onclick="sNav(this)">🔒 Безопасность</div>
+            <div class="s-nav-item" onclick="sNav(this)">🎨 Интерфейс</div>
+            <div class="s-nav-item" onclick="sNav(this)">🔔 Уведомления</div>
+            <div class="s-nav-item" onclick="sNav(this)">🔌 API</div>
           </div>
         </div>
         <div>
-          <div class="settings-card">
-            <div class="settings-card-header">Личные данные</div>
-            <div class="settings-card-body">
-              <div class="form-row">
-                <div class="form-group" style="margin:0"><label class="label">Имя</label><input class="input" value="Alex"></div>
-                <div class="form-group" style="margin:0"><label class="label">Фамилия</label><input class="input" value="Thompson"></div>
-              </div>
-              <div style="height:12px"></div>
-              <div class="form-group"><label class="label">Email</label><input class="input" value="alex@example.com" type="email"></div>
-              <div class="form-group"><label class="label">О себе</label><textarea class="input" rows="2" style="resize:none" placeholder="Расскажите о себе..."></textarea></div>
-              <button class="btn btn-primary btn-sm" onclick="toast('Профиль сохранён','success')">Сохранить</button>
+          <div class="s-card">
+            <div class="s-card-head">Личные данные</div>
+            <div class="s-card-body">
+              <div class="frow"><div class="fg" style="margin:0"><label class="lbl">Имя</label><input class="inp" value="Alex"></div><div class="fg" style="margin:0"><label class="lbl">Фамилия</label><input class="inp" value="Thompson"></div></div>
+              <div style="height:10px"></div>
+              <div class="fg"><label class="lbl">Email</label><input class="inp" value="alex@example.com" type="email"></div>
+              <div class="fg"><label class="lbl">О себе</label><textarea class="inp" rows="2" style="resize:none" placeholder="Расскажите о себе..."></textarea></div>
+              <button class="btn btn-primary btn-sm" onclick="toast('Данные сохранены','ok')">Сохранить</button>
             </div>
           </div>
-          <div class="settings-card">
-            <div class="settings-card-header">Интерфейс и AI</div>
-            <div class="settings-card-body">
-              <div class="settings-row">
-                <div><div class="settings-row-lbl">Тёмная тема</div><div class="settings-row-hint">Переключение светлой и тёмной темы</div></div>
-                <div class="toggle" onclick="this.classList.toggle('on')"></div>
-              </div>
-              <div class="settings-row">
-                <div><div class="settings-row-lbl">Потоковый вывод</div><div class="settings-row-hint">Ответ появляется по мере генерации</div></div>
-                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
-              </div>
-              <div class="settings-row">
-                <div class="settings-row-lbl">Модель по умолчанию</div>
-                <select class="select-field" style="width:160px">
-                  <option>GPT-4o</option><option>Claude 3.5</option><option>GPT-3.5 Turbo</option><option>Gemini Pro</option>
-                </select>
-              </div>
-              <div class="settings-row">
-                <div class="settings-row-lbl">Язык</div>
-                <select class="select-field" style="width:160px">
-                  <option>Русский</option><option>English</option><option>Deutsch</option>
-                </select>
-              </div>
+          <div class="s-card">
+            <div class="s-card-head">Интерфейс и AI</div>
+            <div class="s-card-body">
+              <div class="s-row"><div><div class="s-row-lbl">Тёмная тема</div><div class="s-row-hint">Тёмный режим интерфейса</div></div><div class="tog" onclick="this.classList.toggle('on')"></div></div>
+              <div class="s-row"><div><div class="s-row-lbl">Потоковый вывод</div><div class="s-row-hint">Ответ появляется по мере генерации</div></div><div class="tog on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="s-row"><div class="s-row-lbl">Модель по умолчанию</div><select class="sel" style="width:155px"><option>GPT-4o</option><option>Claude 3.5</option><option>GPT-3.5 Turbo</option><option>Gemini Pro</option></select></div>
+              <div class="s-row"><div class="s-row-lbl">Язык</div><select class="sel" style="width:155px"><option>Русский</option><option>English</option><option>Deutsch</option></select></div>
             </div>
           </div>
-          <div class="settings-card" style="border-color:rgba(220,38,38,.2)">
-            <div class="settings-card-header" style="color:#dc2626">Опасная зона</div>
-            <div class="settings-card-body">
-              <div class="settings-row">
-                <div><div class="settings-row-lbl">Очистить историю</div><div class="settings-row-hint">Все чаты будут удалены навсегда</div></div>
-                <button class="btn btn-danger btn-sm" onclick="toast('История очищена')">Очистить</button>
-              </div>
-              <div class="settings-row">
-                <div><div class="settings-row-lbl">Удалить аккаунт</div><div class="settings-row-hint">Необратимое действие</div></div>
-                <button class="btn btn-danger btn-sm" onclick="toast('Недоступно в демо-режиме','')">Удалить</button>
-              </div>
+          <div class="s-card" style="border-color:rgba(220,38,38,.2)">
+            <div class="s-card-head" style="color:#dc2626">Опасная зона</div>
+            <div class="s-card-body">
+              <div class="s-row"><div><div class="s-row-lbl">Очистить историю</div><div class="s-row-hint">Все чаты будут удалены</div></div><button class="btn btn-danger btn-sm" onclick="toast('История очищена')">Очистить</button></div>
+              <div class="s-row"><div><div class="s-row-lbl">Удалить аккаунт</div><div class="s-row-hint">Необратимое действие</div></div><button class="btn btn-danger btn-sm" onclick="toast('Недоступно в демо')">Удалить</button></div>
             </div>
           </div>
-          <button class="btn btn-primary" onclick="toast('Настройки сохранены','success')">Сохранить настройки</button>
+          <button class="btn btn-primary" onclick="toast('Настройки сохранены','ok')">Сохранить настройки</button>
         </div>
       </div>
     </div>
 
-    <!-- ═══ PROFILE PAGE ═══ -->
-    <div id="page-profile" class="page">
-      <div class="profile-grid">
+    <!-- PROFILE -->
+    <div id="p-profile" class="page">
+      <div class="prof-grid">
         <div>
-          <div class="profile-card">
-            <div class="profile-av" id="p-av">AT</div>
-            <div class="profile-name" id="p-name">Alex Thompson</div>
-            <div class="profile-email" id="p-email">alex@example.com</div>
+          <div class="prof-card">
+            <div class="prof-av" id="pf-av">AT</div>
+            <div class="prof-name" id="pf-name">Alex Thompson</div>
+            <div class="prof-email" id="pf-email">alex@example.com</div>
             <span class="badge badge-blue">Free Plan</span>
             <div class="stat-grid">
               <div class="stat-item"><div class="stat-n">247</div><div class="stat-l">чатов</div></div>
@@ -1107,638 +685,556 @@ body {
               <div class="stat-item"><div class="stat-n">38</div><div class="stat-l">медиа</div></div>
               <div class="stat-item"><div class="stat-n">12</div><div class="stat-l">документов</div></div>
             </div>
-            <button class="btn btn-primary btn-sm btn-full" style="margin-top:16px" onclick="openModal('upgrade-modal')">⬆ Улучшить план</button>
+            <button class="btn btn-primary btn-sm btn-full" style="margin-top:14px" onclick="openModal('up-modal')">⬆ Улучшить план</button>
           </div>
         </div>
         <div>
-          <div class="settings-card">
-            <div class="settings-card-header">Редактировать профиль</div>
-            <div class="settings-card-body">
-              <div class="form-row">
-                <div class="form-group" style="margin:0"><label class="label">Имя</label><input class="input" id="pf-first" value="Alex"></div>
-                <div class="form-group" style="margin:0"><label class="label">Фамилия</label><input class="input" id="pf-last" value="Thompson"></div>
-              </div>
-              <div style="height:12px"></div>
-              <div class="form-group"><label class="label">Email</label><input class="input" id="pf-email" value="alex@example.com" type="email"></div>
-              <button class="btn btn-primary btn-sm" onclick="saveProfile()">Сохранить</button>
+          <div class="s-card">
+            <div class="s-card-head">Редактировать профиль</div>
+            <div class="s-card-body">
+              <div class="frow"><div class="fg" style="margin:0"><label class="lbl">Имя</label><input class="inp" id="pf-f" value="Alex"></div><div class="fg" style="margin:0"><label class="lbl">Фамилия</label><input class="inp" id="pf-l" value="Thompson"></div></div>
+              <div style="height:10px"></div>
+              <div class="fg"><label class="lbl">Email</label><input class="inp" id="pf-e" value="alex@example.com" type="email"></div>
+              <button class="btn btn-primary btn-sm" onclick="saveProf()">Сохранить</button>
             </div>
           </div>
-          <div class="settings-card">
-            <div class="settings-card-header">Использование токенов</div>
-            <div class="settings-card-body">
-              <div class="usage-wrap"><div class="usage-head"><span>Токены слов</span><span>8 245 / 10 000</span></div><div class="usage-track"><div class="usage-fill amber" style="width:82%"></div></div></div>
-              <div class="usage-wrap"><div class="usage-head"><span>Токены медиа</span><span>0 / 100</span></div><div class="usage-track"><div class="usage-fill green" style="width:0%"></div></div></div>
-              <div class="usage-wrap"><div class="usage-head"><span>Сообщения сегодня</span><span>36 / 50</span></div><div class="usage-track"><div class="usage-fill" style="width:72%"></div></div></div>
+          <div class="s-card">
+            <div class="s-card-head">Использование</div>
+            <div class="s-card-body">
+              <div class="ub"><div class="ub-head"><span>Токены слов</span><span>8 245 / 10 000</span></div><div class="ub-track"><div class="ub-fill amber" style="width:82%"></div></div></div>
+              <div class="ub"><div class="ub-head"><span>Токены медиа</span><span>0 / 100</span></div><div class="ub-track"><div class="ub-fill green" style="width:0%"></div></div></div>
+              <div class="ub"><div class="ub-head"><span>Сообщений сегодня</span><span>36 / 50</span></div><div class="ub-track"><div class="ub-fill" style="width:72%"></div></div></div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ═══ BILLING PAGE ═══ -->
-    <div id="page-billing" class="page">
-      <div style="max-width:800px">
-        <div class="settings-card" style="margin-bottom:20px">
-          <div class="settings-card-header">Текущий тариф</div>
-          <div class="settings-card-body">
+    <!-- BILLING -->
+    <div id="p-billing" class="page">
+      <div style="max-width:780px">
+        <div class="s-card" style="margin-bottom:18px">
+          <div class="s-card-head">Текущий тариф</div>
+          <div class="s-card-body">
             <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
-              <div>
-                <div style="font-size:20px;font-weight:800;margin-bottom:4px">Free Plan</div>
-                <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Обновляется ежедневно в 00:00</div>
-                <div class="usage-wrap" style="width:280px"><div class="usage-head"><span>Сообщения</span><span>36/50</span></div><div class="usage-track"><div class="usage-fill" style="width:72%"></div></div></div>
-                <div class="usage-wrap" style="width:280px"><div class="usage-head"><span>Медиа-токены</span><span>0/100</span></div><div class="usage-track"><div class="usage-fill green" style="width:0%"></div></div></div>
+              <div style="flex:1;min-width:220px">
+                <div style="font-size:19px;font-weight:800;margin-bottom:4px">Free Plan</div>
+                <div style="font-size:12.5px;color:#6b7280;margin-bottom:14px">Обновляется ежедневно</div>
+                <div class="ub" style="width:280px"><div class="ub-head"><span>Сообщения</span><span>36/50</span></div><div class="ub-track"><div class="ub-fill" style="width:72%"></div></div></div>
               </div>
-              <button class="btn btn-primary" style="margin-left:auto" onclick="openModal('upgrade-modal')">⬆ Перейти на Pro</button>
+              <button class="btn btn-primary" onclick="openModal('up-modal')">⬆ Перейти на Pro</button>
             </div>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;box-shadow:var(--shadow)">
-            <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:10px">FREE</div>
-            <div style="font-size:32px;font-weight:800;margin-bottom:14px">0 ₽</div>
-            <button class="btn btn-ghost btn-sm btn-full" style="opacity:.5;cursor:default">Текущий</button>
-          </div>
-          <div style="background:var(--surface);border:2px solid var(--accent);border-radius:var(--r);padding:22px;background:linear-gradient(160deg,#eff6ff,var(--surface));box-shadow:var(--shadow-md)">
-            <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:10px">PRO ⭐</div>
-            <div style="font-size:32px;font-weight:800;margin-bottom:4px">1 490 ₽</div>
-            <div style="font-size:11px;color:var(--text3);margin-bottom:14px;font-family:'JetBrains Mono',monospace">/месяц</div>
-            <button class="btn btn-primary btn-sm btn-full" onclick="openModal('upgrade-modal')">Перейти на Pro</button>
-          </div>
-          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;box-shadow:var(--shadow)">
-            <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:10px">BUSINESS</div>
-            <div style="font-size:32px;font-weight:800;margin-bottom:4px">4 990 ₽</div>
-            <div style="font-size:11px;color:var(--text3);margin-bottom:14px;font-family:'JetBrains Mono',monospace">/месяц</div>
-            <button class="btn btn-ghost btn-sm btn-full" onclick="toast('sales@djase.com','info')">Связаться</button>
-          </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:13px">
+          <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#6b7280;margin-bottom:9px">FREE</div><div style="font-size:30px;font-weight:800;margin-bottom:13px">0 ₽</div><button class="btn btn-ghost btn-sm btn-full" style="opacity:.5;cursor:default">Текущий</button></div>
+          <div style="background:linear-gradient(160deg,#eff6ff,#fff);border:2px solid #2563eb;border-radius:12px;padding:20px;box-shadow:0 4px 12px rgba(37,99,235,.1)"><div style="font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#2563eb;margin-bottom:9px">PRO ⭐</div><div style="font-size:30px;font-weight:800;margin-bottom:3px">1 490 ₽</div><div style="font-size:11px;color:#9ca3af;margin-bottom:13px">/месяц</div><button class="btn btn-primary btn-sm btn-full" onclick="openModal('up-modal')">Перейти на Pro</button></div>
+          <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;box-shadow:0 1px 2px rgba(0,0,0,.04)"><div style="font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#6b7280;margin-bottom:9px">BUSINESS</div><div style="font-size:30px;font-weight:800;margin-bottom:3px">4 990 ₽</div><div style="font-size:11px;color:#9ca3af;margin-bottom:13px">/месяц</div><button class="btn btn-ghost btn-sm btn-full" onclick="toast('sales@djase.com','info')">Связаться</button></div>
         </div>
       </div>
     </div>
 
   </div><!-- /content -->
 </div><!-- /main -->
-</div><!-- /layout -->
+</div><!-- /app -->
 
 <!-- MODALS -->
-<div class="modal-bg" id="model-modal">
-  <div class="modal" style="max-width:500px">
-    <button class="modal-close" onclick="closeModal('model-modal')">✕</button>
-    <div class="modal-title">Выбор модели</div>
-    <div class="modal-sub">Активная модель для чата</div>
-    <div id="model-list" style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto"></div>
-  </div>
-</div>
-
 <div class="modal-bg" id="tool-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('tool-modal')">✕</button>
-    <div id="tool-modal-content"></div>
+    <button class="modal-x" onclick="closeModal('tool-modal')">✕</button>
+    <div id="tool-modal-body"></div>
   </div>
 </div>
 
-<div class="modal-bg" id="upgrade-modal">
+<div class="modal-bg" id="model-modal">
+  <div class="modal lg">
+    <button class="modal-x" onclick="closeModal('model-modal')">✕</button>
+    <div class="modal-title">Выбор модели</div>
+    <div class="modal-sub">Активная модель для чата</div>
+    <div id="model-list" style="display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="up-modal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('upgrade-modal')">✕</button>
-    <div style="text-align:center;margin-bottom:18px">
-      <div style="font-size:36px;margin-bottom:10px">⚡</div>
-      <div class="modal-title">Перейти на Pro</div>
-      <div class="modal-sub">Безлимитные сообщения, все модели, медиа-генерация без ограничений</div>
-    </div>
-    <div style="background:var(--bg);border-radius:10px;padding:14px 16px;margin-bottom:18px">
-      <div style="font-size:32px;font-weight:800;margin-bottom:2px">1 490 ₽ <span style="font-size:14px;color:var(--text2);font-weight:400">/мес</span></div>
-      <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace">или 990 ₽/мес при годовой оплате</div>
-    </div>
-    <div class="form-group"><label class="label">Номер карты</label><input class="input" placeholder="0000 0000 0000 0000"></div>
-    <div class="form-row" style="margin-bottom:18px">
-      <div class="form-group" style="margin:0"><label class="label">Срок</label><input class="input" placeholder="MM / YY"></div>
-      <div class="form-group" style="margin:0"><label class="label">CVV</label><input class="input" placeholder="•••"></div>
-    </div>
+    <button class="modal-x" onclick="closeModal('up-modal')">✕</button>
+    <div style="text-align:center;margin-bottom:16px"><div style="font-size:34px;margin-bottom:10px">⚡</div><div class="modal-title">Перейти на Pro</div><div class="modal-sub">Безлимитные сообщения, все модели, медиа без ограничений</div></div>
+    <div style="background:#f9fafb;border-radius:9px;padding:13px 15px;margin-bottom:16px"><div style="font-size:28px;font-weight:800;margin-bottom:2px">1 490 ₽ <span style="font-size:14px;color:#6b7280;font-weight:400">/мес</span></div><div style="font-size:11px;color:#9ca3af">или 990 ₽/мес при годовой оплате</div></div>
+    <div class="fg"><label class="lbl">Номер карты</label><input class="inp" placeholder="0000 0000 0000 0000"></div>
+    <div class="frow" style="margin-bottom:16px"><div class="fg" style="margin:0"><label class="lbl">Срок</label><input class="inp" placeholder="MM / YY"></div><div class="fg" style="margin:0"><label class="lbl">CVV</label><input class="inp" placeholder="•••"></div></div>
     <button class="btn btn-primary btn-full btn-lg" onclick="pay()">Оформить подписку</button>
-    <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:10px">🔒 Защищено TLS · Отмена в любое время</div>
+    <div style="font-size:11px;color:#9ca3af;text-align:center;margin-top:9px">🔒 Защищено TLS · Отмена в любое время</div>
   </div>
 </div>
 
 <div id="toasts"></div>
 
 <script>
-/* ════════ DATA ════════ */
-const IMAGES_DATA = [
-  { name:'Генератор Изображений', desc:'Просто напиши, что хочешь увидеть — AI создаст за секунды', grad:'thumb-gradient-1', icon:'🎨', cat:'Нейросети', badge:'' },
-  { name:'Редактор изображений', desc:'Загрузи фото и опиши, что нужно изменить — AI сделает всё', grad:'thumb-gradient-7', icon:'✏️', cat:'Нейросети', badge:'' },
-  { name:'Восстановление фото', desc:'Загрузи старое фото и восстанови детали, цвет, резкость', grad:'thumb-gradient-11', icon:'🔄', cat:'Нейросети', badge:'' },
-  { name:'Тёплый снимок', desc:'Загрузи фото двух людей — получи нежный совместный портрет', grad:'thumb-gradient-5', icon:'❤️', cat:'Тренды', badge:'' },
-  { name:'Нейрофотосессия', desc:'Загрузи своё фото — и создавай образы в любом стиле', grad:'thumb-gradient-3', icon:'📸', cat:'Фотостудия', badge:'' },
-  { name:'Нейро-коллаж', desc:'Загрузите ваше фото и получите художественный коллаж', grad:'thumb-gradient-4', icon:'🖼️', cat:'Фотостудия', badge:'Новое' },
-  { name:'Обложка видео', desc:'Создай яркую обложку для видео за пару кликов', grad:'thumb-gradient-6', icon:'▶️', cat:'Дизайн', badge:'' },
-  { name:'Карточка товара', desc:'Загрузи фото — AI оформит товар для маркетплейса', grad:'thumb-gradient-2', icon:'🛒', cat:'Маркетплейсы', badge:'' },
-  { name:'Чёрно-белая близость', desc:'Загрузите два фото — и получите художественный портрет', grad:'thumb-gradient-11', icon:'🎞️', cat:'Тренды', badge:'' },
-  { name:'Портрет поколений', desc:'Загрузите фото своей семьи и создайте коллаж', grad:'thumb-gradient-10', icon:'👨‍👩‍👧', cat:'Тренды', badge:'' },
-  { name:'Из-за Стены', desc:'Загрузи фото людей и получи эффект стены', grad:'thumb-gradient-8', icon:'🧱', cat:'Тренды', badge:'' },
-  { name:'Платье из цветов', desc:'Загрузи фото и примерь наряд из живых цветов', grad:'thumb-gradient-9', icon:'🌸', cat:'Тренды', badge:'' },
-  { name:'Фотосессия / Мимоза', desc:'Загрузи фото и сияй среди мимоз', grad:'thumb-gradient-3', icon:'🌼', cat:'Фотостудия', badge:'' },
-  { name:'Весенний портрет', desc:'Загрузи фотографии всех женщин — создадим весенний образ', grad:'thumb-gradient-5', icon:'🌺', cat:'Фотостудия', badge:'' },
-  { name:'Любовь это...', desc:'Загрузи фото двух людей и получи комикс в стиле "Love is..."', grad:'thumb-gradient-6', icon:'💕', cat:'Тренды', badge:'' },
-  { name:'Вязаный мир', desc:'Загрузи своё фото и превратись в персонажа из пряжи', grad:'thumb-gradient-2', icon:'🧶', cat:'Тренды', badge:'' },
-  { name:'Фотосессия / Масленица', desc:'Загрузи своё фото и окунись в русские традиции', grad:'thumb-gradient-6', icon:'☀️', cat:'Фотостудия', badge:'' },
-  { name:'Фотосессия с Чебурашкой', desc:'Загрузи фото и окажись рядом с любимым персонажем', grad:'thumb-gradient-4', icon:'🐻', cat:'Тренды', badge:'' },
+/* ═══════ DATA ═══════ */
+
+// Picsum photos for realistic thumbnails — each ID gives a different photo
+const IMG_TOOLS = [
+  { name:'Генератор Изображений', desc:'Просто напиши, что хочешь увидеть — AI создаст за секунды', pid:['1036','1025'], cat:'Нейросети', icon:'🎨', badge:'' },
+  { name:'Редактор изображений', desc:'Загрузи фото и опиши, что нужно изменить — AI сделает всё', pid:['1012','1011'], cat:'Нейросети', icon:'✏️', badge:'' },
+  { name:'Восстановление фото', desc:'Загрузи старое фото и восстанови детали и цвет', pid:['1062','1070'], cat:'Нейросети', icon:'🔄', badge:'', ba:true },
+  { name:'Тёплый снимок', desc:'Загрузи фото двух людей — получи нежный совместный портрет', pid:['1041','1035'], cat:'Тренды', icon:'❤️', badge:'', ba:true },
+  { name:'Нейрофотосессия', desc:'Загрузи своё фото — создавай образы в любом стиле', pid:['1005'], cat:'Фотостудия', icon:'📸', badge:'' },
+  { name:'Нейро-коллаж', desc:'Загрузите ваше фото и получите художественный коллаж', pid:['1015'], cat:'Фотостудия', icon:'🖼️', badge:'Новое' },
+  { name:'Обложка видео', desc:'Создай яркую обложку для видео за пару кликов', pid:['1054'], cat:'Дизайн', icon:'▶️', badge:'' },
+  { name:'Карточка товара', desc:'Загрузи фото — AI оформит товар для маркетплейса', pid:['1050'], cat:'Маркетплейсы', icon:'🛒', badge:'' },
+  { name:'Чёрно-белая близость', desc:'Загрузите два фото — и получите художественный портрет', pid:['1066','1078'], cat:'Тренды', icon:'🎞️', badge:'', ba:true },
+  { name:'Портрет поколений', desc:'Загрузите фото семьи и создайте семейный коллаж', pid:['1060','1068'], cat:'Тренды', icon:'👨‍👩‍👧', badge:'', ba:true },
+  { name:'Из-за Стены', desc:'Загрузи фото людей и получи эффект выглядывания из-за стены', pid:['1003','1004'], cat:'Тренды', icon:'🧱', badge:'', ba:true },
+  { name:'Платье из цветов', desc:'Загрузи фото и примерь наряд из живых цветов', pid:['1076'], cat:'Тренды', icon:'🌸', badge:'' },
+  { name:'Фотосессия / Мимоза', desc:'Загрузи фото и сияй среди мимоз', pid:['1080'], cat:'Фотостудия', icon:'🌼', badge:'' },
+  { name:'Весенний портрет', desc:'Загрузи фотографии женщин — создадим весенний образ', pid:['1027'], cat:'Фотостудия', icon:'🌺', badge:'' },
+  { name:'Любовь это...', desc:'Загрузи фото двух людей и получи комикс в стиле "Love is..."', pid:['1031','1029'], cat:'Тренды', icon:'💕', badge:'', ba:true },
+  { name:'Вязаный мир', desc:'Загрузи своё фото и превратись в персонажа из пряжи', pid:['1047'], cat:'Тренды', icon:'🧶', badge:'' },
+  { name:'Фотосессия / Масленица', desc:'Загрузи фото и окунись в атмосферу Масленицы', pid:['1082'], cat:'Фотостудия', icon:'☀️', badge:'' },
+  { name:'Фотосессия с Чебурашкой', desc:'Загрузи фото и окажись рядом с любимым персонажем', pid:['1043'], cat:'Тренды', icon:'🐻', badge:'' },
 ];
 
-const VIDEO_DATA = [
-  { name:'Google Veo 3.1', desc:'Видео нового поколения: Veo генерирует реалистичные сцены', grad:'thumb-gradient-7', icon:'▶️', cat:'Нейросети', badge:'Новое' },
-  { name:'Kling Motion Control', desc:'Новейшая модель для переноса движения на видео', grad:'thumb-gradient-2', icon:'🎮', cat:'Нейросети', badge:'Новое' },
-  { name:'Оживление изображения', desc:'Загрузи фото — превратите его в живое видео', grad:'thumb-gradient-11', icon:'✨', cat:'Основное', badge:'' },
-  { name:'Карусель', desc:'Загрузи своё фото и окажись в карусели', grad:'thumb-gradient-3', icon:'🎠', cat:'Движение & Танцы', badge:'' },
-  { name:'Trend Dance #1', desc:'Загрузи своё фото — нейросеть заставит тебя танцевать', grad:'thumb-gradient-1', icon:'💃', cat:'Движение & Танцы', badge:'' },
-  { name:'Trend Dance #21', desc:'Загрузи своё фото — нейросеть заставит тебя танцевать', grad:'thumb-gradient-5', icon:'🕺', cat:'Движение & Танцы', badge:'' },
-  { name:'Рекламный ролик', desc:'Загрузи фото своего продукта и получи рекламу', grad:'thumb-gradient-8', icon:'📣', cat:'Основное', badge:'' },
-  { name:'Видео-поздравление', desc:'Создай персонализированное поздравление с праздником', grad:'thumb-gradient-6', icon:'🎉', cat:'Основное', badge:'' },
-  { name:'Новости', desc:'Создай короткий и насыщенный новостной ролик', grad:'thumb-gradient-11', icon:'📰', cat:'Основное', badge:'' },
-  { name:'AI Блогер', desc:'Создай своего AI Блогера и используй его в роликах', grad:'thumb-gradient-4', icon:'🤖', cat:'Основное', badge:'' },
-  { name:'Бабуля', desc:'Сцена с бабушкой: она может совершенно всё', grad:'thumb-gradient-3', icon:'👵', cat:'Эффекты', badge:'' },
-  { name:'Уличное интервью', desc:'Нейросеть снимет уличное интервью с вашим героем', grad:'thumb-gradient-7', icon:'🎤', cat:'Эффекты', badge:'' },
-  { name:'Внезапный поцелуй', desc:'Загрузи фото и получи романтическое видео', grad:'thumb-gradient-5', icon:'💋', cat:'Эффекты', badge:'' },
-  { name:'AI Эмоции', desc:'Загрузи фото и получи ан эмоции персонажа', grad:'thumb-gradient-9', icon:'😄', cat:'Эффекты', badge:'' },
-  { name:'Объятие Тигра', desc:'Загрузи фото и обнимись с тигром в джунглях', grad:'thumb-gradient-8', icon:'🐯', cat:'Эффекты', badge:'' },
-  { name:'Новости с изображением', desc:'Загрузи фото — и на нем заговорят новости', grad:'thumb-gradient-2', icon:'📡', cat:'Переходы', badge:'' },
-  { name:'AI Бикини', desc:'Пляжная сцена с вашим персонажем', grad:'thumb-gradient-5', icon:'🏖️', cat:'Переходы', badge:'' },
-  { name:'Интервью на фоне', desc:'Загрузи изображение и т. Сделай интервью', grad:'thumb-gradient-11', icon:'🎙️', cat:'Переходы', badge:'' },
+const VID_TOOLS = [
+  { name:'Google Veo 3.1', desc:'Видео нового поколения: реалистичные сцены по тексту', pid:['7'], cat:'Нейросети', icon:'▶️', badge:'Новое' },
+  { name:'Kling Motion Control', desc:'Новейшая модель для переноса движения на видео', pid:['8'], cat:'Нейросети', icon:'🎮', badge:'Новое' },
+  { name:'Оживление изображения', desc:'Загрузи фото — превратите его в живое видео', pid:['1019','1020'], cat:'Основное', icon:'✨', badge:'', ba:true },
+  { name:'Карусель', desc:'Загрузи своё фото и окажись в карусели моментов', pid:['1022'], cat:'Движение & Танцы', icon:'🎠', badge:'' },
+  { name:'Trend Dance #1', desc:'Загрузи своё фото — нейросеть заставит тебя танцевать', pid:['1024'], cat:'Движение & Танцы', icon:'💃', badge:'' },
+  { name:'Trend Dance #21', desc:'Загрузи своё фото — нейросеть заставит тебя танцевать', pid:['1028'], cat:'Движение & Танцы', icon:'🕺', badge:'' },
+  { name:'Рекламный ролик', desc:'Загрузи фото своего продукта и получи рекламный ролик', pid:['1048'], cat:'Основное', icon:'📣', badge:'' },
+  { name:'Видео-поздравление', desc:'Создай персонализированное видео-поздравление', pid:['1039'], cat:'Основное', icon:'🎉', badge:'' },
+  { name:'Новости', desc:'Создай короткий и насыщенный новостной видеоролик', pid:['1056'], cat:'Основное', icon:'📰', badge:'' },
+  { name:'AI Блогер', desc:'Создай своего AI Блогера и используй его в роликах', pid:['1074'], cat:'Основное', icon:'🤖', badge:'' },
+  { name:'Бабуля', desc:'Сцена с бабушкой: она может сделать всё что угодно', pid:['1084'], cat:'Эффекты', icon:'👵', badge:'' },
+  { name:'Уличное интервью', desc:'Нейросеть снимет уличное интервью с вашим героем', pid:['1086'], cat:'Эффекты', icon:'🎤', badge:'' },
+  { name:'Внезапный поцелуй', desc:'Загрузи фото и получи романтическое видео', pid:['1088'], cat:'Эффекты', icon:'💋', badge:'' },
+  { name:'AI Эмоции', desc:'Загрузи фото и получи видео с эмоциями персонажа', pid:['1090'], cat:'Эффекты', icon:'😄', badge:'' },
+  { name:'Объятие Тигра', desc:'Загрузи фото и обнимись с тигром в джунглях', pid:['1092'], cat:'Эффекты', icon:'🐯', badge:'' },
+  { name:'Новости с изображением', desc:'Загрузи фото — и на нём заговорят новости', pid:['1094'], cat:'Переходы', icon:'📡', badge:'' },
+  { name:'AI Бикини', desc:'Пляжная сцена с вашим персонажем', pid:['1096'], cat:'Переходы', icon:'🏖️', badge:'' },
+  { name:'Интервью на фоне', desc:'Загрузи изображение и сделай интервью на его фоне', pid:['1098'], cat:'Переходы', icon:'🎙️', badge:'' },
 ];
 
-const AUDIO_DATA = [
-  { name:'Генератор Песен', desc:'Создаёт оригинальные треки по текстовому описанию в любом жанре', grad:'thumb-gradient-1', icon:'🎵', cat:'Все', badge:'' },
-  { name:'Озвучка текста', desc:'Преврати текст в реалистичную человеческую речь', grad:'thumb-gradient-7', icon:'🔊', cat:'Все', badge:'' },
-  { name:'Звуковые эффекты', desc:'Преврати описание в реалист. звуковой эффект', grad:'thumb-gradient-2', icon:'💥', cat:'Все', badge:'' },
-  { name:'Мелодия', desc:'Преврати идею в мелодию с аккордами', grad:'thumb-gradient-3', icon:'🎸', cat:'Все', badge:'' },
-  { name:'Вокал к мелодии', desc:'Добавь вокал к мелодии — загрузи трек', grad:'thumb-gradient-4', icon:'🎤', cat:'Все', badge:'' },
-  { name:'Мелодия к вокалу', desc:'Добавь мелодию к вокалу — загрузи запись', grad:'thumb-gradient-5', icon:'🥁', cat:'Все', badge:'' },
-  { name:'Аудио Изоляция', desc:'Загрузи своё аудио — ИИ очистит звук от шумов', grad:'thumb-gradient-8', icon:'🎚️', cat:'Все', badge:'' },
+// Audio uses SVG illustrations, not photos
+const AUD_TOOLS = [
+  { name:'Генератор Песен', desc:'Создаёт оригинальные треки по текстовому описанию в любом жанре', color:'#1e3a5f', icon:'🎵', wave:'#0ea5e9' },
+  { name:'Озвучка текста', desc:'Преврати текст в реалистичную человеческую речь любым голосом', color:'#1e1b4b', icon:'🔊', wave:'#818cf8' },
+  { name:'Звуковые эффекты', desc:'Преврати текстовое описание в реалистичный звуковой эффект', color:'#0f172a', icon:'💥', wave:'#06b6d4' },
+  { name:'Мелодия', desc:'Преврати идею в законченную мелодию с аккордами', color:'#14532d', icon:'🎸', wave:'#4ade80' },
+  { name:'Вокал к мелодии', desc:'Добавь вокал к готовой мелодии — загрузи трек', color:'#3b0764', icon:'🎤', wave:'#e879f9' },
+  { name:'Мелодия к вокалу', desc:'Добавь музыкальный фон к вокальной записи', color:'#7f1d1d', icon:'🥁', wave:'#f87171' },
+  { name:'Аудио Изоляция', desc:'Загрузи аудио — ИИ очистит от шумов и изолирует звук', color:'#1c1917', icon:'🎚️', wave:'#a8a29e' },
 ];
 
 const TOOLS_DATA = {
   'Промпты': [
-    {icon:'💠', name:'Промпт для Veo3'}, {icon:'💠', name:'Создание персонажа (Veo3)'},
-    {icon:'💠', name:'Создание фона/локации (Veo3)'}, {icon:'💠', name:'Диалоги и действия (Veo3)'},
-    {icon:'🎬', name:'Промт для Sora 2'}, {icon:'✨', name:'Улучшитель промптов'},
+    {i:'💠',n:'Промпт для Veo3'},{i:'💠',n:'Создание персонажа (Veo3)'},
+    {i:'💠',n:'Создание фона/локации (Veo3)'},{i:'💠',n:'Диалоги и действия (Veo3)'},
+    {i:'🎬',n:'Промт для Sora 2'},{i:'✨',n:'Улучшитель промптов'},
   ],
   'Реклама и маркетинг': [
-    {icon:'✏️', name:'Идеи для рекламы'}, {icon:'🎯', name:'Заголовки для Яндекс Директ'},
-    {icon:'📋', name:'Контент для лендинга'}, {icon:'💬', name:'Рассылка SMS / WhatsApp'},
-    {icon:'🔵', name:'Заголовки для VK Рекламы'}, {icon:'🔵', name:'Описания для VK Рекламы'},
-    {icon:'🔑', name:'Генератор ключевых слов'}, {icon:'🟢', name:'Заголовки для Google Ads'},
-    {icon:'📐', name:'Модель AIDA'}, {icon:'🟢', name:'Описания для Google Ads'},
-    {icon:'🟡', name:'Описания для Яндекс Директ'},
+    {i:'✏️',n:'Идеи для рекламы'},{i:'🎯',n:'Заголовки для Яндекс Директ'},
+    {i:'📋',n:'Контент для лендинга'},{i:'💬',n:'Рассылка SMS / WhatsApp'},
+    {i:'🔵',n:'Заголовки для VK Рекламы'},{i:'🔵',n:'Описания для VK Рекламы'},
+    {i:'🔑',n:'Генератор ключевых слов'},{i:'🟢',n:'Заголовки для Google Ads'},
+    {i:'📐',n:'Модель AIDA'},{i:'🟢',n:'Описания для Google Ads'},
+    {i:'🟡',n:'Описания для Яндекс Директ'},
   ],
   'Социальные сети': [
-    {icon:'📝', name:'Заголовки для постов'}, {icon:'✍️', name:'Идеи для постов в блоге'},
-    {icon:'📧', name:'Информационная рассылка'}, {icon:'📅', name:'План для блога'},
-    {icon:'💡', name:'Идеи для видео'}, {icon:'🎬', name:'Заголовок к видео на YouTube'},
-    {icon:'📰', name:'Сценарий 15-сек. ролика'}, {icon:'🏷️', name:'Тэги для Youtube'},
-    {icon:'💭', name:'Идеи для блога'}, {icon:'🔴', name:'Описание к видео на YouTube'},
-    {icon:'📱', name:'Сценарий для Reels'}, {icon:'📣', name:'Вступление для блога'},
+    {i:'📝',n:'Заголовки для постов'},{i:'✍️',n:'Идеи для постов в блоге'},
+    {i:'📧',n:'Информационная рассылка'},{i:'📅',n:'План для блога'},
+    {i:'💡',n:'Идеи для видео'},{i:'🎬',n:'Заголовок к видео на YouTube'},
+    {i:'📰',n:'Сценарий 15-сек. ролика'},{i:'🏷️',n:'Тэги для Youtube'},
+    {i:'💭',n:'Идеи для блога'},{i:'🔴',n:'Описание к видео на YouTube'},
+    {i:'📱',n:'Сценарий для Reels'},{i:'📣',n:'Вступление для блога'},
   ],
   'Бизнес и работа': [
-    {icon:'📩', name:'Письмо с извинениями'}, {icon:'📲', name:'Push-уведомление'},
-    {icon:'🌐', name:'Локализация описания RU⇌EN'}, {icon:'📨', name:'Информационная рассылка'},
-    {icon:'❓', name:'FAQ для сайта'}, {icon:'💼', name:'Сопроводительное письмо'},
-    {icon:'🏷️', name:'Слоган для сайта'}, {icon:'👤', name:'Биография'},
-    {icon:'📬', name:'Генератор рассылок'}, {icon:'⭐', name:'Ответы на отзывы'},
-    {icon:'💡', name:'Бизнес стратегия'}, {icon:'📮', name:'Автоответы на Email'},
-    {icon:'🚀', name:'Стартап идеи'}, {icon:'🔍', name:'Генератор Отзывов'},
-    {icon:'📊', name:'Коммерческое предложение'}, {icon:'📄', name:'Конструктор резюме'},
+    {i:'📩',n:'Письмо с извинениями'},{i:'📲',n:'Push-уведомление'},
+    {i:'🌐',n:'Локализация описания RU⇌EN'},{i:'📨',n:'Информационная рассылка'},
+    {i:'❓',n:'FAQ для сайта'},{i:'💼',n:'Сопроводительное письмо'},
+    {i:'🏷️',n:'Слоган для сайта'},{i:'👤',n:'Биография'},
+    {i:'📬',n:'Генератор рассылок'},{i:'⭐',n:'Ответы на отзывы'},
+    {i:'💡',n:'Бизнес стратегия'},{i:'📮',n:'Автоответы на Email'},
+    {i:'🚀',n:'Стартап идеи'},{i:'🔍',n:'Генератор отзывов'},
+    {i:'📊',n:'Коммерческое предложение'},{i:'📄',n:'Конструктор резюме'},
   ],
   'Маркетплейсы': [
-    {icon:'📦', name:'Описание товара'}, {icon:'🏷️', name:'Заголовок карточки'},
-    {icon:'⭐', name:'Ответ на отзыв'}, {icon:'🔎', name:'SEO для маркетплейса'},
-    {icon:'📋', name:'Характеристики товара'}, {icon:'💰', name:'Ценовое предложение'},
-    {icon:'🛒', name:'Описание для Ozon'}, {icon:'🟡', name:'Описание для Wildberries'},
+    {i:'📦',n:'Описание товара'},{i:'🏷️',n:'Заголовок карточки'},
+    {i:'⭐',n:'Ответ на отзыв'},{i:'🔎',n:'SEO для маркетплейса'},
+    {i:'📋',n:'Характеристики товара'},{i:'💰',n:'Ценовое предложение'},
+    {i:'🛒',n:'Описание для Ozon'},{i:'🟡',n:'Описание для Wildberries'},
   ],
   'Образование': [
-    {icon:'📚', name:'Конспект урока'}, {icon:'❓', name:'Тест и вопросы'},
-    {icon:'🎯', name:'Учебный план'}, {icon:'📝', name:'Эссе и сочинение'},
-    {icon:'🔬', name:'Научная статья'}, {icon:'📖', name:'Реферат'},
-    {icon:'🧮', name:'Решение задач'}, {icon:'🌍', name:'Перевод текста'},
+    {i:'📚',n:'Конспект урока'},{i:'❓',n:'Тест и вопросы'},
+    {i:'🎯',n:'Учебный план'},{i:'📝',n:'Эссе и сочинение'},
+    {i:'🔬',n:'Научная статья'},{i:'📖',n:'Реферат'},
+    {i:'🧮',n:'Решение задач'},{i:'🌍',n:'Перевод текста'},
   ],
   'Развлечения': [
-    {icon:'😄', name:'Анекдот'}, {icon:'🎲', name:'Идеи для игр'},
-    {icon:'📖', name:'Короткий рассказ'}, {icon:'🎭', name:'Сценарий'},
-    {icon:'🔮', name:'Гороскоп'}, {icon:'🎤', name:'Текст для рэпа'},
+    {i:'😄',n:'Анекдот'},{i:'🎲',n:'Идеи для игр'},
+    {i:'📖',n:'Короткий рассказ'},{i:'🎭',n:'Сценарий'},
+    {i:'🔮',n:'Гороскоп'},{i:'🎤',n:'Текст для рэпа'},
   ],
 };
 
-const HISTORY_DATA = [
-  { icon:'🖼️', bg:'#eff6ff', title:'Нейрофотосессия в стиле аниме', meta:'Изображения · 2 часа назад', type:'Медиа', typeBg:'badge-purple' },
-  { icon:'💬', bg:'#f0fdf4', title:'Анализ бизнес-плана AI стартапа', meta:'Чат · 5 часов назад', type:'Текст', typeBg:'badge-blue' },
-  { icon:'🎵', bg:'#fffbeb', title:'Генерация трека в стиле lo-fi', meta:'Аудио · вчера', type:'Аудио', typeBg:'badge-amber' },
-  { icon:'🎬', bg:'#fdf4ff', title:'Оживление свадебного фото', meta:'Видео · вчера', type:'Видео', typeBg:'badge-purple' },
-  { icon:'💬', bg:'#f0fdf4', title:'Python скрипт парсинга данных', meta:'Чат · 2 дня назад', type:'Текст', typeBg:'badge-blue' },
-  { icon:'🖼️', bg:'#fef2f2', title:'Платье из цветов — фотосессия', meta:'Изображения · 3 дня назад', type:'Медиа', typeBg:'badge-purple' },
-  { icon:'🔧', bg:'#f0fdf4', title:'Описание товара для Wildberries', meta:'Инструменты · 4 дня назад', type:'Текст', typeBg:'badge-green' },
-  { icon:'🎬', bg:'#eff6ff', title:'Trend Dance — загрузка фото', meta:'Видео · неделю назад', type:'Видео', typeBg:'badge-purple' },
+const HIST = [
+  {i:'🖼️',bg:'#eff6ff',t:'Нейрофотосессия в стиле аниме',m:'Изображения · 2 часа назад',tag:'Медиа',tc:'badge-purple'},
+  {i:'💬',bg:'#f0fdf4',t:'Анализ бизнес-плана AI стартапа',m:'Чат · 5 часов назад',tag:'Текст',tc:'badge-blue'},
+  {i:'🎵',bg:'#fffbeb',t:'Генерация трека в стиле lo-fi',m:'Аудио · вчера',tag:'Аудио',tc:'badge-amber'},
+  {i:'🎬',bg:'#fdf4ff',t:'Оживление свадебного фото',m:'Видео · вчера',tag:'Видео',tc:'badge-purple'},
+  {i:'💬',bg:'#f0fdf4',t:'Python скрипт парсинга данных',m:'Чат · 2 дня назад',tag:'Текст',tc:'badge-blue'},
+  {i:'🖼️',bg:'#fef2f2',t:'Платье из цветов — фотосессия',m:'Изображения · 3 дня назад',tag:'Медиа',tc:'badge-purple'},
+  {i:'🔧',bg:'#f0fdf4',t:'Описание товара для Wildberries',m:'Инструменты · 4 дня назад',tag:'Текст',tc:'badge-green'},
+  {i:'🎬',bg:'#eff6ff',t:'Trend Dance — загрузка фото',m:'Видео · неделю назад',tag:'Видео',tc:'badge-purple'},
 ];
 
 const MODELS = [
-  { name:'GPT-4o', icon:'🧠', desc:'Флагманская модель OpenAI — умная, быстрая', pro:false },
-  { name:'Claude 3.5 Sonnet', icon:'🎭', desc:'Anthropic — идеален для длинных текстов и анализа', pro:true },
-  { name:'GPT-3.5 Turbo', icon:'⚡', desc:'Быстрый и доступный на Free тарифе', pro:false },
-  { name:'Gemini Pro', icon:'💎', desc:'Google — с поиском в интернете', pro:true },
-  { name:'DeepSeek Coder', icon:'🐋', desc:'Специализирован для разработки кода', pro:false },
-  { name:'Mistral Large', icon:'🌀', desc:'Открытая европейская модель', pro:true },
+  {n:'GPT-4o',i:'🧠',d:'Флагманская модель OpenAI',pro:false},
+  {n:'Claude 3.5 Sonnet',i:'🎭',d:'Идеален для длинных текстов и анализа',pro:true},
+  {n:'GPT-3.5 Turbo',i:'⚡',d:'Быстрый и экономичный',pro:false},
+  {n:'Gemini Pro',i:'💎',d:'Google — с поиском в интернете',pro:true},
+  {n:'DeepSeek Coder',i:'🐋',d:'Специализирован для кода',pro:false},
+  {n:'Mistral Large',i:'🌀',d:'Открытая европейская модель',pro:true},
 ];
 
-const AI_RESPS = [
-  q => `Отличный вопрос!\n\nПо теме "${q.substring(0,40)}" могу рассказать следующее:\n\n**Ключевые аспекты:**\n• Первый важный момент — это фундаментальное понимание контекста\n• Второй — практическое применение в реальных задачах\n• Третий — оптимизация и масштабирование результата\n\nГотов разобрать любой из этих пунктов подробнее. Что вас интересует больше всего?`,
-  q => `По запросу "${q.substring(0,35)}":\n\nЭто многогранная тема. Выделю три направления:\n\n1. **Теория** — базовые принципы и механизмы\n2. **Практика** — конкретные примеры применения\n3. **Оптимизация** — как добиться лучших результатов\n\nС чего хотите начать?`,
+const AI_R = [
+  q=>`Отличный вопрос о "${q.substring(0,35)}"!\n\n**Ключевые аспекты:**\n• Базовое понимание контекста и механизмов\n• Практическое применение в реальных задачах\n• Оптимизация и масштабирование результата\n\nГотов разобрать любой из этих пунктов подробнее. Что интересует больше всего?`,
+  q=>`По запросу "${q.substring(0,30)}" могу сказать следующее:\n\n1. **Теория** — базовые принципы и механизмы работы\n2. **Практика** — конкретные примеры применения\n3. **Инструменты** — что использовать для лучшего результата\n\nС чего хотите начать?`,
 ];
 
-/* ════════ STATE ════════ */
+/* ═══════ STATE ═══════ */
 let curModel = 'GPT-4o';
-let isTyping = false;
-let sidebarCollapsed = false;
-let curPage = 'main';
+let busy = false;
+let curPage = 'home';
+const PAGE_FILTERS = {
+  images: {tabs:['👾 Все','🤖 Нейросети','🔥 Тренды','🎨 Дизайн','🛒 Маркетплейсы','📸 Фотостудия','🎬 Обложки','📱 Видео-сетап'], key:'cat'},
+  video:  {tabs:['👾 Все','🤖 Нейросети','▶️ Основное','💃 Движение & Танцы','✨ Эффекты','🔀 Переходы'], key:'cat'},
+  audio:  {tabs:['👾 Все']},
+  tools:  {tabs:['👾 Все','💠 Промпты','📣 Реклама и маркетинг','📱 Социальные сети','💼 Бизнес и работа','🛒 Маркетплейсы','📚 Образование','🎭 Развлечения']},
+};
 
-/* ════════ INIT ════════ */
-document.addEventListener('DOMContentLoaded', () => {
-  renderGrid('images-grid', IMAGES_DATA);
-  renderGrid('video-grid', VIDEO_DATA);
-  renderGrid('audio-grid', AUDIO_DATA);
-  renderToolsPage();
-  renderHistory();
+/* ═══════ INIT ═══════ */
+document.addEventListener('DOMContentLoaded', ()=>{
+  renderImgs(IMG_TOOLS);
+  renderVids(VID_TOOLS);
+  renderAudio();
+  renderTools('Все');
+  renderHist();
   renderModels();
-  const u = getUser();
-  if (u) {
-    const ini = (u.initials || u.name.split(' ').map(w=>w[0]).join('').substring(0,2)).toUpperCase();
-    document.getElementById('s-av').textContent = ini;
-    document.getElementById('s-name').textContent = u.name;
-    document.getElementById('p-av').textContent = ini;
-    document.getElementById('p-name').textContent = u.name;
-    document.getElementById('p-email').textContent = u.email;
-    document.getElementById('chat-username').textContent = u.name.split(' ')[0];
-    document.getElementById('pf-first').value = u.name.split(' ')[0] || '';
-    document.getElementById('pf-last').value = u.name.split(' ')[1] || '';
-    document.getElementById('pf-email').value = u.email || '';
+  const u = sess();
+  if(u){
+    const ini = (u.initials||u.name.split(' ').map(w=>w[0]).join('')).substring(0,2).toUpperCase();
+    ['u-av','pf-av'].forEach(id=>{ const el=document.getElementById(id); if(el)el.textContent=ini; });
+    ['u-name','pf-name'].forEach(id=>{ const el=document.getElementById(id); if(el)el.textContent=u.name; });
+    const pe=document.getElementById('pf-email'); if(pe)pe.textContent=u.email;
+    const cu=document.getElementById('ch-uname'); if(cu)cu.textContent=u.name.split(' ')[0];
+    const pff=document.getElementById('pf-f'); if(pff)pff.value=u.name.split(' ')[0]||'';
+    const pfl=document.getElementById('pf-l'); if(pfl)pfl.value=u.name.split(' ')[1]||'';
+    const pfe=document.getElementById('pf-e'); if(pfe)pfe.value=u.email||'';
   }
 });
 
-/* ════════ RENDER GRID ════════ */
-function renderGrid(containerId, data) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  el.innerHTML = data.map(item => `
-    <div class="tool-card" onclick="openTool('${item.name}','${item.grad}','${item.icon}','${item.desc}')">
-      <div class="tool-card-thumb ${item.grad}">
-        <div style="font-size:40px">${item.icon}</div>
-        ${item.badge ? `<span class="thumb-badge new-badge">${item.badge}</span>` : ''}
-        ${item.cat ? `<span class="thumb-badge" style="top:auto;bottom:8px">${item.cat}</span>` : ''}
+/* ═══════ RENDER IMAGES ═══════ */
+function imgUrl(pid, w=320, h=200){ return `https://picsum.photos/id/${pid}/${w}/${h}`; }
+
+function renderImgs(data){
+  document.getElementById('img-grid').innerHTML = data.map(t=>`
+    <div class="tool-card" onclick="openTool('${esc(t.name)}','${t.pid[0]}','${t.icon}','${esc(t.desc)}')">
+      <div class="tc-thumb ${t.ba?'ba':''}">
+        ${t.ba && t.pid[1] ? `
+          <div class="tc-ba-half"><img src="${imgUrl(t.pid[0])}" alt="" loading="lazy" onerror="this.parentNode.innerHTML='<div style=\\'width:100%;height:100%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:32px\\'>${t.icon}</div>'"></div>
+          <div class="tc-ba-arrow">→</div>
+          <div class="tc-ba-half"><img src="${imgUrl(t.pid[1])}" alt="" loading="lazy" onerror="this.parentNode.innerHTML='<div style=\\'width:100%;height:100%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:32px\\'>${t.icon}</div>'"></div>
+        ` : `<img src="${imgUrl(t.pid[0])}" alt="" loading="lazy" onerror="this.style.display='none';this.nextSibling&&(this.nextSibling.style.display='flex')">`}
+        ${!t.ba ? `<div class="tc-thumb-fallback" style="display:none">${t.icon}</div>` : ''}
+        ${t.badge ? `<span class="tc-badge new">${t.badge}</span>` : ''}
+        ${t.cat ? `<span class="tc-badge" style="left:8px;right:auto">${t.cat}</span>` : ''}
+        <div class="tc-arrow">→</div>
       </div>
-      <div class="tool-card-body">
-        <div class="tool-card-name">${item.name}</div>
-        <div class="tool-card-desc">${item.icon} ${item.desc}</div>
+      <div class="tc-body">
+        <div class="tc-name">${t.name}</div>
+        <div class="tc-desc">${t.icon} ${t.desc}</div>
       </div>
     </div>`).join('');
 }
 
-/* ════════ RENDER TOOLS PAGE ════════ */
-function renderToolsPage(filter = 'all') {
-  const el = document.getElementById('tools-content');
-  if (!el) return;
-  const sections = filter === 'all' ? Object.keys(TOOLS_DATA)
-    : Object.keys(TOOLS_DATA).filter(k => k.toLowerCase().includes(filter));
-  el.innerHTML = sections.map(section => {
-    const items = TOOLS_DATA[section];
-    return `<div class="tools-section">
-      <div class="tools-section-title">${section}</div>
-      <div class="tools-list-grid">
-        ${items.map(t => `
-          <div class="tool-list-item" onclick="toast('Открываем: ${t.name}','info')">
-            <span class="tool-list-icon">${t.icon}</span>
-            ${t.name}
+function renderVids(data){
+  document.getElementById('vid-grid').innerHTML = data.map(t=>`
+    <div class="tool-card" onclick="openTool('${esc(t.name)}','${t.pid[0]}','${t.icon}','${esc(t.desc)}')">
+      <div class="tc-thumb ${t.ba?'ba':''}">
+        ${t.ba && t.pid[1] ? `
+          <div class="tc-ba-half"><img src="${imgUrl(t.pid[0])}" alt="" loading="lazy"></div>
+          <div class="tc-ba-arrow">→</div>
+          <div class="tc-ba-half"><img src="${imgUrl(t.pid[1])}" alt="" loading="lazy"></div>
+        ` : `<img src="${imgUrl(t.pid[0])}" alt="" loading="lazy" onerror="this.style.display='none'">`}
+        ${!t.ba?`<div class="tc-thumb-fallback" style="display:none">${t.icon}</div>`:''}
+        ${t.badge?`<span class="tc-badge new">${t.badge}</span>`:''}
+        ${t.cat?`<span class="tc-badge" style="left:8px;right:auto">${t.cat}</span>`:''}
+        <div class="tc-arrow">▶</div>
+      </div>
+      <div class="tc-body">
+        <div class="tc-name">${t.name}</div>
+        <div class="tc-desc">${t.icon} ${t.desc}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderAudio(){
+  document.getElementById('aud-grid').innerHTML = AUD_TOOLS.map(t=>`
+    <div class="audio-card" onclick="openTool('${esc(t.name)}','','${t.icon}','${esc(t.desc)}')">
+      <div class="audio-thumb" style="background:${t.color}">
+        ${waveformSVG(t.wave, t.icon)}
+      </div>
+      <div class="audio-card-body">
+        <div class="audio-card-name">${t.name}</div>
+        <div class="audio-card-desc">${t.icon} ${t.desc}</div>
+      </div>
+    </div>`).join('');
+}
+
+function waveformSVG(color, icon){
+  const bars = [20,35,55,40,65,80,60,45,70,50,38,62,48,72,42,58,30,44,66,52,36,60,46,74,40];
+  return `<svg viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
+    ${bars.map((h,i)=>`<rect x="${i*8+2}" y="${40-h/2}" width="5" height="${h}" rx="2.5" fill="${color}" opacity="${0.5+0.5*(h/80)}"/>`).join('')}
+    <text x="100" y="42" text-anchor="middle" dominant-baseline="central" font-size="24">${icon}</text>
+  </svg>`;
+}
+
+/* ═══════ RENDER TOOLS ═══════ */
+function renderTools(cat){
+  const keys = cat==='Все' ? Object.keys(TOOLS_DATA) : [cat];
+  document.getElementById('tools-body').innerHTML = keys.filter(k=>TOOLS_DATA[k]).map(k=>`
+    <div class="tools-section">
+      <div class="tools-sec-title">${k}</div>
+      <div class="tools-list">
+        ${TOOLS_DATA[k].map(t=>`
+          <div class="tool-list-item" onclick="toast('${t.n}','info')">
+            <span class="tli-icon">${t.i}</span>${t.n}
           </div>`).join('')}
       </div>
-    </div>`;
-  }).join('');
-}
-
-function filterTools(cat, el) {
-  document.querySelectorAll('#tools-filters .filter-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  if (cat === 'all') renderToolsPage('all');
-  else {
-    const key = Object.keys(TOOLS_DATA).find(k => k.toLowerCase().includes(cat));
-    if (key) {
-      document.getElementById('tools-content').innerHTML = `<div class="tools-section">
-        <div class="tools-section-title">${key}</div>
-        <div class="tools-list-grid">
-          ${TOOLS_DATA[key].map(t => `<div class="tool-list-item" onclick="toast('Открываем: ${t.name}','info')"><span class="tool-list-icon">${t.icon}</span>${t.name}</div>`).join('')}
-        </div></div>`;
-    }
-  }
-}
-
-/* ════════ HISTORY ════════ */
-function renderHistory() {
-  const el = document.getElementById('history-list');
-  if (!el) return;
-  el.innerHTML = HISTORY_DATA.map(h => `
-    <div class="history-card" onclick="toast('Открываем историю: ${h.title}','info')">
-      <div class="history-card-icon" style="background:${h.bg}">${h.icon}</div>
-      <div style="flex:1">
-        <div class="history-card-title">${h.title}</div>
-        <div class="history-card-meta">${h.meta}</div>
-      </div>
-      <span class="badge ${h.typeBg} history-card-type">${h.type}</span>
     </div>`).join('');
 }
 
-/* ════════ MODELS ════════ */
-function renderModels() {
-  const el = document.getElementById('model-list');
-  if (!el) return;
-  el.innerHTML = MODELS.map(m => `
-    <div onclick="pickModel('${m.name}')" style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;cursor:pointer;border:1.5px solid ${m.name===curModel?'var(--accent)':'var(--border2)'};background:${m.name===curModel?'var(--accent-light)':'transparent'};transition:all .15s"
-      onmouseover="if('${m.name}'!==curModel)this.style.background='var(--bg)'" onmouseout="if('${m.name}'!==curModel)this.style.background='transparent'">
-      <span style="font-size:22px">${m.icon}</span>
+/* ═══════ HISTORY ═══════ */
+function renderHist(){
+  document.getElementById('hist-list').innerHTML = HIST.map(h=>`
+    <div class="hist-card" onclick="toast('${h.t}','info')">
+      <div class="hist-icon" style="background:${h.bg}">${h.i}</div>
       <div style="flex:1">
-        <div style="font-size:13.5px;font-weight:600">${m.name}</div>
-        <div style="font-size:12px;color:var(--text2)">${m.desc}</div>
+        <div class="hist-title">${h.t}</div>
+        <div class="hist-meta">${h.m}</div>
       </div>
-      ${m.pro ? '<span class="badge badge-amber">Pro</span>' : '<span class="badge badge-green">Free</span>'}
-      ${m.name===curModel ? '<span style="color:var(--accent);font-size:16px">✓</span>' : ''}
+      <span class="badge ${h.tc} hist-tag">${h.tag}</span>
     </div>`).join('');
 }
 
-function pickModel(name) {
-  curModel = name;
-  document.getElementById('cur-model').textContent = name;
-  document.getElementById('chat-model-hint').textContent = `${name} · Enter↵`;
+/* ═══════ MODELS ═══════ */
+function renderModels(){
+  document.getElementById('model-list').innerHTML = MODELS.map(m=>`
+    <div onclick="pickModel('${m.n}')" style="display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:10px;cursor:pointer;border:1.5px solid ${m.n===curModel?'#2563eb':'#e5e7eb'};background:${m.n===curModel?'#eff6ff':'transparent'};transition:all .14s"
+      onmouseover="if('${m.n}'!==curModel)this.style.background='#f9fafb'" onmouseout="if('${m.n}'!==curModel)this.style.background='transparent'">
+      <span style="font-size:21px">${m.i}</span>
+      <div style="flex:1"><div style="font-size:13.5px;font-weight:600">${m.n}</div><div style="font-size:12px;color:#6b7280">${m.d}</div></div>
+      ${m.pro?'<span class="badge badge-amber">Pro</span>':'<span class="badge badge-green">Free</span>'}
+      ${m.n===curModel?'<span style="color:#2563eb;font-size:15px">✓</span>':''}
+    </div>`).join('');
+}
+
+function pickModel(n){
+  curModel = n;
+  ['cur-model-lbl','ch-model-lbl'].forEach(id=>{ const el=document.getElementById(id); if(el)el.textContent=n; });
   closeModal('model-modal');
   renderModels();
-  toast(`Модель: ${name}`, 'success');
+  toast('Модель: '+n,'ok');
 }
 
-/* ════════ PAGE NAV ════════ */
-const PAGE_FILTERS = {
-  images: {
-    tabs: ['Все','Нейросети','Тренды','Дизайн','Маркетплейсы','Фотостудия','Обложки','Видео-сетап'],
-    onSelect: (cat) => {
-      const f = cat === 'Все' ? IMAGES_DATA : IMAGES_DATA.filter(i => i.cat === cat);
-      renderGridFiltered('images-grid', f);
-    }
-  },
-  video: {
-    tabs: ['Все','Нейросети','Основное','Движение & Танцы','Эффекты','Переходы'],
-    onSelect: (cat) => {
-      const f = cat === 'Все' ? VIDEO_DATA : VIDEO_DATA.filter(i => i.cat === cat);
-      renderGridFiltered('video-grid', f);
-    }
-  },
-  audio: {
-    tabs: ['Все'],
-    onSelect: () => {}
-  },
-  tools: {
-    tabs: ['Все','Промпты','Реклама и маркетинг','Социальные сети','Бизнес и работа','Маркетплейсы','Образование','Развлечения'],
-    onSelect: (cat) => filterToolsDirect(cat)
-  },
-};
-
-function renderGridFiltered(containerId, data) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  el.innerHTML = data.map(item => `
-    <div class="tool-card" onclick="openTool('${item.name}','${item.grad}','${item.icon}','${item.desc}')">
-      <div class="tool-card-thumb ${item.grad}">
-        <div style="font-size:40px">${item.icon}</div>
-        ${item.badge ? `<span class="thumb-badge new-badge">${item.badge}</span>` : ''}
-        ${item.cat ? `<span class="thumb-badge" style="top:auto;bottom:8px">${item.cat}</span>` : ''}
-      </div>
-      <div class="tool-card-body">
-        <div class="tool-card-name">${item.name}</div>
-        <div class="tool-card-desc">${item.icon} ${item.desc}</div>
-      </div>
-    </div>`).join('');
-}
-
-function filterToolsDirect(cat) {
-  if (cat === 'Все') { renderToolsPage('all'); return; }
-  const key = Object.keys(TOOLS_DATA).find(k => k === cat);
-  if (!key) return;
-  document.getElementById('tools-content').innerHTML = `<div class="tools-section">
-    <div class="tools-section-title">${key}</div>
-    <div class="tools-list-grid">
-      ${TOOLS_DATA[key].map(t => `<div class="tool-list-item" onclick="toast('${t.name}','info')"><span class="tool-list-icon">${t.icon}</span>${t.name}</div>`).join('')}
-    </div></div>`;
-}
-
-function showPage(id, title) {
-  document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); if(p.id==='page-chat') p.style.display='none'; });
-  const pg = document.getElementById('page-' + id);
-  if (!pg) return;
-  if (id === 'chat') { pg.style.display = 'flex'; } else { pg.classList.add('active'); }
+/* ═══════ NAVIGATION ═══════ */
+function go(id, title){
+  // hide all
+  document.querySelectorAll('.page').forEach(p=>{ p.classList.remove('on'); if(p.id==='p-chat')p.style.display='none'; });
+  const pg = document.getElementById('p-'+id);
+  if(!pg) return;
+  if(id==='chat'){ pg.style.display='flex'; } else { pg.classList.add('on'); }
   curPage = id;
-  document.getElementById('page-title').textContent = title;
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const navItems = document.querySelectorAll('.nav-item');
-  const map = { main:0, chat:1, images:2, video:3, audio:4, tools:5, history:6, settings:7 };
-  if (map[id] !== undefined) navItems[map[id]]?.classList.add('active');
-
-  // search bar visibility
-  const hasSearch = ['images','video','audio','tools','history'].includes(id);
-  document.getElementById('head-search').style.display = hasSearch ? 'flex' : 'none';
-  document.getElementById('model-pill').style.display = id === 'chat' ? 'flex' : 'none';
-  document.getElementById('search-input').value = '';
-
-  // render filter tabs
-  const filterConf = PAGE_FILTERS[id];
-  const tabsEl = document.getElementById('filter-tabs');
-  if (filterConf) {
-    tabsEl.innerHTML = filterConf.tabs.map((t, i) => `
-      <div class="filter-tab ${i===0?'active':''}" onclick="selectTab(this,'${t}','${id}')">${t}</div>`).join('');
-  } else {
-    tabsEl.innerHTML = '';
-  }
-
-  document.getElementById('user-dd').classList.remove('open');
+  document.getElementById('ph-title').textContent = title;
+  // nav active
+  document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('on'));
+  const map={home:0,chat:1,images:2,video:3,audio:4,tools:5,history:6,settings:7};
+  const navs=document.querySelectorAll('.sb-item');
+  if(map[id]!==undefined) navs[map[id]]?.classList.add('on');
+  // search
+  const hasSrch=['images','video','audio','tools','history'].includes(id);
+  document.getElementById('searchbox').style.display=hasSrch?'flex':'none';
+  document.getElementById('model-pill-top').style.display=id==='chat'?'flex':'none';
+  document.getElementById('search-inp').value='';
+  // tabs
+  const conf=PAGE_FILTERS[id];
+  const ft=document.getElementById('ftabs');
+  ft.innerHTML = conf ? conf.tabs.map((t,i)=>`<div class="ftab ${i===0?'on':''}" onclick="pickTab(this,'${t}','${id}')">${t}</div>`).join('') : '';
+  // close dd
+  document.getElementById('u-dd')?.classList.remove('open');
 }
 
-function selectTab(el, cat, page) {
-  document.querySelectorAll('#filter-tabs .filter-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  const conf = PAGE_FILTERS[page];
-  if (conf) conf.onSelect(cat);
-}
-
-function handleSearch(val) {
-  if (curPage === 'images') {
-    const f = val ? IMAGES_DATA.filter(i => i.name.toLowerCase().includes(val.toLowerCase())) : IMAGES_DATA;
-    renderGridFiltered('images-grid', f);
-  } else if (curPage === 'video') {
-    const f = val ? VIDEO_DATA.filter(i => i.name.toLowerCase().includes(val.toLowerCase())) : VIDEO_DATA;
-    renderGridFiltered('video-grid', f);
-  } else if (curPage === 'tools') {
-    if (!val) { renderToolsPage('all'); return; }
-    const results = {};
-    Object.keys(TOOLS_DATA).forEach(k => {
-      const filtered = TOOLS_DATA[k].filter(t => t.name.toLowerCase().includes(val.toLowerCase()));
-      if (filtered.length) results[k] = filtered;
-    });
-    const el = document.getElementById('tools-content');
-    el.innerHTML = Object.keys(results).map(k => `
-      <div class="tools-section">
-        <div class="tools-section-title">${k}</div>
-        <div class="tools-list-grid">
-          ${results[k].map(t => `<div class="tool-list-item" onclick="toast('${t.name}','info')"><span class="tool-list-icon">${t.icon}</span>${t.name}</div>`).join('')}
-        </div></div>`).join('') || '<p style="color:var(--text3);padding:20px">Ничего не найдено</p>';
+function pickTab(el, label, page){
+  document.querySelectorAll('#ftabs .ftab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  // extract clean label (remove emoji prefix)
+  const clean = label.replace(/^[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE00}-\u{FEFF} ]+/u,'').trim();
+  if(page==='images'){
+    const f = clean==='Все' ? IMG_TOOLS : IMG_TOOLS.filter(t=>t.cat===clean);
+    renderImgs(f);
+  } else if(page==='video'){
+    const f = clean==='Все' ? VID_TOOLS : VID_TOOLS.filter(t=>t.cat===clean);
+    renderVids(f);
+  } else if(page==='tools'){
+    renderTools(clean==='Все'?'Все':Object.keys(TOOLS_DATA).find(k=>k===clean)||'Все');
   }
 }
 
-/* ════════ TOOL MODAL ════════ */
-function openTool(name, grad, icon, desc) {
-  document.getElementById('tool-modal-content').innerHTML = `
-    <div class="tool-modal-thumb ${grad}">
-      <span>${icon}</span>
-    </div>
+function onSearch(v){
+  if(curPage==='images'){
+    renderImgs(v ? IMG_TOOLS.filter(t=>t.name.toLowerCase().includes(v.toLowerCase())) : IMG_TOOLS);
+  } else if(curPage==='video'){
+    renderVids(v ? VID_TOOLS.filter(t=>t.name.toLowerCase().includes(v.toLowerCase())) : VID_TOOLS);
+  } else if(curPage==='tools'){
+    if(!v){ renderTools('Все'); return; }
+    const res={};
+    Object.keys(TOOLS_DATA).forEach(k=>{ const f=TOOLS_DATA[k].filter(t=>t.n.toLowerCase().includes(v.toLowerCase())); if(f.length)res[k]=f; });
+    document.getElementById('tools-body').innerHTML = Object.keys(res).map(k=>`
+      <div class="tools-section"><div class="tools-sec-title">${k}</div><div class="tools-list">
+        ${res[k].map(t=>`<div class="tool-list-item" onclick="toast('${t.n}','info')"><span class="tli-icon">${t.i}</span>${t.n}</div>`).join('')}
+      </div></div>`).join('') || '<p style="color:#9ca3af;padding:20px">Ничего не найдено</p>';
+  }
+}
+
+/* ═══════ TOOL MODAL ═══════ */
+function openTool(name, pid, icon, desc){
+  const thumb = pid
+    ? `<img src="${imgUrl(pid,460,260)}" style="width:100%;height:100%;object-fit:cover" alt="" onerror="this.parentNode.innerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:56px\\'>${icon}</div>'">`
+    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#1e293b;font-size:56px">${icon}</div>`;
+  document.getElementById('tool-modal-body').innerHTML = `
+    <div class="tm-thumb">${thumb}</div>
     <div class="modal-title">${name}</div>
-    <div class="tool-modal-desc">${desc}</div>
-    <div class="tool-modal-options">
-      <div class="tool-option" onclick="startTool('${name}','upload')">
-        <span class="tool-option-icon">📤</span>
-        <div>
-          <div class="tool-option-name">Загрузить файл</div>
-          <div class="tool-option-hint">Загрузите изображение, видео или аудио</div>
-        </div>
-      </div>
-      <div class="tool-option" onclick="startTool('${name}','text')">
-        <span class="tool-option-icon">✍️</span>
-        <div>
-          <div class="tool-option-name">Текстовый запрос</div>
-          <div class="tool-option-hint">Опишите желаемый результат текстом</div>
-        </div>
-      </div>
+    <div class="modal-sub">${desc}</div>
+    <div class="tm-opt" onclick="startTool('${esc(name)}','upload')">
+      <span class="tm-opt-icon">📤</span>
+      <div><div class="tm-opt-name">Загрузить файл</div><div class="tm-opt-hint">Загрузите изображение, видео или аудио</div></div>
+    </div>
+    <div class="tm-opt" onclick="startTool('${esc(name)}','text')">
+      <span class="tm-opt-icon">✍️</span>
+      <div><div class="tm-opt-name">Текстовый запрос</div><div class="tm-opt-hint">Опишите желаемый результат текстом</div></div>
     </div>`;
   openModal('tool-modal');
 }
 
-function startTool(name, mode) {
+function startTool(name, mode){
   closeModal('tool-modal');
-  toast(`Запускаем "${name}" (${mode === 'upload' ? 'загрузка файла' : 'текстовый запрос'})`, 'info');
+  toast(`Запускаем «${name}»...`, 'info');
 }
 
-/* ════════ CHAT ════════ */
-function ck(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sm(); } }
-function qs(t) { document.getElementById('chat-inp').value = t; sm(); }
-function ar(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 160) + 'px'; }
+/* ═══════ CHAT ═══════ */
+function ck(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sm(); } }
+function qs(t){ document.getElementById('ch-inp').value=t; sm(); }
+function ar(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,150)+'px'; }
 
-function sm() {
-  const inp = document.getElementById('chat-inp');
-  const txt = inp.value.trim();
-  if (!txt || isTyping) return;
-  document.getElementById('chat-welcome').style.display = 'none';
-  inp.value = ''; inp.style.height = 'auto';
-  addMsg('user', txt);
-  isTyping = true;
-  document.getElementById('send-btn').disabled = true;
-  const tid = 'ty' + Date.now();
+function sm(){
+  const inp=document.getElementById('ch-inp');
+  const txt=inp.value.trim();
+  if(!txt||busy) return;
+  document.getElementById('ch-welcome').style.display='none';
+  inp.value=''; inp.style.height='auto';
+  addMsg('user',txt);
+  busy=true;
+  document.getElementById('send-btn').disabled=true;
+  const tid='t'+Date.now();
   addTyping(tid);
-  setTimeout(() => {
+  setTimeout(()=>{
     removeTyping(tid);
-    const r = AI_RESPS[Math.floor(Math.random()*AI_RESPS.length)](txt);
-    addMsg('ai', r);
-    isTyping = false;
-    document.getElementById('send-btn').disabled = false;
-  }, 700 + Math.random()*1100);
+    addMsg('ai', AI_R[Math.floor(Math.random()*AI_R.length)](txt));
+    busy=false;
+    document.getElementById('send-btn').disabled=false;
+  }, 700+Math.random()*1000);
 }
 
-function addMsg(role, text) {
-  const u = getUser() || { name:'User', initials:'U' };
-  const ini = (u.initials || u.name.split(' ').map(w=>w[0]).join('').substring(0,2)).toUpperCase();
-  const el = document.createElement('div');
-  el.className = 'msg-wrap';
-  const t = new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-  el.innerHTML = `<div class="message ${role}">
-    <div class="msg-av ${role==='ai'?'ai':'usr'}">${role==='ai'?'🌐':ini}</div>
+function addMsg(role, text){
+  const u=sess()||{name:'User',initials:'U'};
+  const ini=(u.initials||u.name.split(' ').map(w=>w[0]).join('')).substring(0,2).toUpperCase();
+  const el=document.createElement('div');
+  el.className='msg-wrap';
+  const t=new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+  el.innerHTML=`<div class="msg ${role}">
+    <div class="msg-av ${role==='ai'?'ai':'me'}">${role==='ai'?'🌐':ini}</div>
     <div class="msg-body">
-      <div class="msg-bubble">${text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div>
+      <div class="bubble">${text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div>
       <div class="msg-time">${t} · ${role==='ai'?curModel:'Вы'}</div>
     </div></div>`;
-  document.getElementById('msgs-list').appendChild(el);
-  const c = document.getElementById('chat-msgs');
-  c.scrollTop = c.scrollHeight;
+  document.getElementById('msgs').appendChild(el);
+  document.getElementById('chat-msgs').scrollTop=9999;
 }
 
-function addTyping(id) {
-  const el = document.createElement('div');
-  el.id = id; el.className = 'msg-wrap';
-  el.innerHTML = `<div class="message ai"><div class="msg-av ai">🌐</div><div class="msg-body"><div class="msg-bubble ai" style="padding:0"><div class="typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div></div>`;
-  document.getElementById('msgs-list').appendChild(el);
-  document.getElementById('chat-msgs').scrollTop = 9999;
+function addTyping(id){
+  const el=document.createElement('div');
+  el.id=id; el.className='msg-wrap';
+  el.innerHTML=`<div class="msg ai"><div class="msg-av ai">🌐</div><div class="msg-body"><div class="bubble" style="padding:0"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div></div>`;
+  document.getElementById('msgs').appendChild(el);
+  document.getElementById('chat-msgs').scrollTop=9999;
 }
-function removeTyping(id) { document.getElementById(id)?.remove(); }
+function removeTyping(id){ document.getElementById(id)?.remove(); }
 
-/* ════════ SIDEBAR ════════ */
-function toggleSidebar() {
-  sidebarCollapsed = !sidebarCollapsed;
-  const sb = document.getElementById('sidebar');
-  sb.classList.toggle('collapsed', sidebarCollapsed);
-  document.getElementById('sb-toggle').textContent = sidebarCollapsed ? '▶' : '◀';
-}
-
-/* ════════ PROFILE ════════ */
-function saveProfile() {
-  const f = document.getElementById('pf-first').value;
-  const l = document.getElementById('pf-last').value;
-  const e = document.getElementById('pf-email').value;
-  const u = getUser() || {};
-  u.name = `${f} ${l}`.trim(); u.email = e;
-  u.initials = `${f[0]||''}${l[0]||''}`.toUpperCase();
-  setUser(u);
-  const ini = u.initials;
-  document.getElementById('s-av').textContent = ini;
-  document.getElementById('s-name').textContent = u.name;
-  document.getElementById('p-av').textContent = ini;
-  document.getElementById('p-name').textContent = u.name;
-  document.getElementById('p-email').textContent = e;
-  toast('Профиль обновлён', 'success');
+/* ═══════ SIDEBAR ═══════ */
+let sbMini=false;
+function toggleSb(){
+  sbMini=!sbMini;
+  document.getElementById('sb').classList.toggle('mini',sbMini);
+  document.getElementById('sb-btn').textContent=sbMini?'▶':'◀';
 }
 
-/* ════════ BILLING ════════ */
-function pay() {
-  closeModal('upgrade-modal');
-  toast('Обрабатываем платёж...', 'info');
-  setTimeout(() => toast('Подписка Pro активирована! 🎉', 'success'), 1400);
+/* ═══════ PROFILE ═══════ */
+function saveProf(){
+  const f=document.getElementById('pf-f').value;
+  const l=document.getElementById('pf-l').value;
+  const e=document.getElementById('pf-e').value;
+  const u=sess()||{};
+  u.name=`${f} ${l}`.trim(); u.email=e;
+  u.initials=`${f[0]||''}${l[0]||''}`.toUpperCase();
+  setSess(u);
+  const ini=u.initials;
+  ['u-av','pf-av'].forEach(id=>{ const el=document.getElementById(id); if(el)el.textContent=ini; });
+  ['u-name','pf-name'].forEach(id=>{ const el=document.getElementById(id); if(el)el.textContent=u.name; });
+  document.getElementById('pf-email').textContent=e;
+  toast('Профиль обновлён','ok');
 }
 
-/* ════════ LOGOUT ════════ */
-function goLogout() {
-  sessionStorage.removeItem('djase_user');
-  toast('Выходим...', '');
-  setTimeout(() => location.href = 'login.html', 700);
+function sNav(el){ document.querySelectorAll('.s-nav-item').forEach(n=>n.classList.remove('on')); el.classList.add('on'); }
+
+/* ═══════ BILLING ═══════ */
+function pay(){ closeModal('up-modal'); toast('Обрабатываем платёж...','info'); setTimeout(()=>toast('Подписка Pro активирована! 🎉','ok'),1400); }
+
+/* ═══════ LOGOUT ═══════ */
+function logout(){ sessionStorage.removeItem('djase_user'); location.href='login.html'; }
+
+/* ═══════ MODAL ═══════ */
+function openModal(id){ document.getElementById(id)?.classList.add('open'); }
+function closeModal(id){ document.getElementById(id)?.classList.remove('open'); }
+document.addEventListener('click',e=>{ if(e.target.classList.contains('modal-bg'))e.target.classList.remove('open'); });
+
+/* ═══════ DROPDOWN ═══════ */
+function toggleDD(id){ document.getElementById(id)?.classList.toggle('open'); }
+document.addEventListener('click',e=>{ document.querySelectorAll('.dd.open').forEach(d=>{ if(!d.contains(e.target))d.classList.remove('open'); }); });
+
+/* ═══════ TOAST ═══════ */
+function toast(msg, type=''){
+  const r=document.getElementById('toasts');
+  const el=document.createElement('div');
+  el.className=`toast ${type==='ok'?'ok':type==='err'?'err':type==='info'?'info':''}`;
+  el.textContent=msg; r.appendChild(el);
+  setTimeout(()=>{ el.style.transition='all .3s'; el.style.opacity='0'; el.style.transform='translateX(10px)'; setTimeout(()=>el.remove(),300); },3000);
 }
 
-/* ════════ MODALS ════════ */
-function openModal(id) { document.getElementById(id)?.classList.add('open'); }
-function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
-document.addEventListener('click', e => {
-  if (e.target.classList.contains('modal-bg')) e.target.classList.remove('open');
-});
-
-/* ════════ DROPDOWN ════════ */
-function toggleDD(id) { document.getElementById(id)?.classList.toggle('open'); }
-document.addEventListener('click', e => {
-  document.querySelectorAll('.dd.open').forEach(d => { if (!d.contains(e.target)) d.classList.remove('open'); });
-});
-
-/* ════════ TOAST ════════ */
-function toast(msg, type = '') {
-  const r = document.getElementById('toasts');
-  const el = document.createElement('div');
-  el.className = `toast ${type}`;
-  el.textContent = msg;
-  r.appendChild(el);
-  setTimeout(() => { el.style.transition = 'all .3s'; el.style.opacity = '0'; el.style.transform = 'translateX(10px)'; setTimeout(() => el.remove(), 300); }, 3000);
-}
-
-/* ════════ SESSION STORAGE ════════ */
-function getUser() { try { const s = sessionStorage.getItem('djase_user'); return s ? JSON.parse(s) : { name:'Alex Thompson', email:'alex@example.com', plan:'Free', initials:'AT' }; } catch { return null; } }
-function setUser(u) { sessionStorage.setItem('djase_user', JSON.stringify(u)); }
+/* ═══════ SESSION ═══════ */
+function sess(){ try{ const s=sessionStorage.getItem('djase_user'); return s?JSON.parse(s):{name:'Alex Thompson',email:'alex@example.com',plan:'Free',initials:'AT'}; }catch{return null;} }
+function setSess(u){ sessionStorage.setItem('djase_user',JSON.stringify(u)); }
+function esc(s){ return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 </script>
 </body>
 </html>
